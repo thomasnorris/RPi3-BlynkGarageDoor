@@ -56,5 +56,5 @@ function setupEnableSwitch(enable) {
 }
 
 function finishUp() {
-	console.log('Running as a child process. Run \"pkill node\" to terminate.\nRun \"ps -e|grep node\" to view running Node.js processes.');
+	
 }
