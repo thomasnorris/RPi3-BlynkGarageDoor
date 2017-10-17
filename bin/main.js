@@ -10,9 +10,9 @@ var vPinList = [],
 	v3Pin = new blynk.VirtualPin(3);
 
 var vLedList = [],
-	v4Led = new blynk.WidgetLed(4),
-	v5Led = new blynk.WidgetLed(5),
-	v6Led = new blynk.WidgetLed(6)
+	v4Led = new blynk.WidgetLED(4),
+	v5Led = new blynk.WidgetLED(5),
+	v6Led = new blynk.WidgetLED(6)
 
 var gpioList = [],
 	g4 = new gpio(4, 'high'),
