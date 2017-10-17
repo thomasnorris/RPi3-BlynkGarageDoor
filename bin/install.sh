@@ -24,9 +24,6 @@ echo "$blynkAuthTemplate" > blynk-auth.js
 
 sudo chown pi -R $PWD
 
-echo -e "${GREEN}Auth Token Saved!${NC} Would you like to start the program now? [y/n]"
-read choice
-
-[[ "$choice" == "y" || "$choice" == "Y" ]] && sudo node main.js || echo -e "\nStart the program by running ${GREEN}\"node main.js\"${NC} in this directory."
+echo -e "${GREEN}Auth Token Saved!${NC} Ready to start."
 
 exit
