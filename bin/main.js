@@ -19,7 +19,7 @@ var gpioList = [],
 	g17 = new gpio(17, 'high'),
 	g27 = new gpio(27, 'high');
 
-var masterEnable = true;
+var masterEnable = false;
 
 vPinList.push(v1Pin, v2Pin, v3Pin); // no enable pin
 gpioList.push(g4, g17, g27); // no input gpio pins (not implemented now)
@@ -57,7 +57,7 @@ function resetEverything() {
 }
 
 function setupEnableSwitch(enable) {
-	enable.write(0);
+	enable.write(masterEnable ? 1 : 0);
 	enable.on('write', (value) => {
 		resetEverything();
 		value == 1 ? masterEnable = true : masterEnable = false;
