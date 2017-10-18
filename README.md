@@ -1,5 +1,3 @@
-# RPi3-BlynkGarageDoor
-
 ## Notes
 - This project takes the [relay project](https://github.com/thomasnorris/RPi3-BlynkTriggerRelay) and further modifies it do do other things. Specific instructions are not provided. 
 - Clone with this command:
