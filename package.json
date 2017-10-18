@@ -6,7 +6,8 @@
   "dependencies": {
     "blynk-library": "^0.4.7",
     "npm": "^5.4.2",
-    "onoff": "^1.1.7"
+    "onoff": "^1.1.7",
+    "wol": "^1.0.3"
   },
   "devDependencies": {},
   "scripts": {
