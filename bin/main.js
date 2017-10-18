@@ -40,7 +40,7 @@ function blynkTriggerGpio(trigger, gpio, vLed) {
 			trigger.write(0);
 	});
 	setInterval(() => {
-			gpio.readSync() == 1 ? vLed.turnOff() : vLed.turnOn();
+		gpio.readSync() == 1 ? vLed.turnOff() : vLed.turnOn();
 	}, 250);
 }
 
