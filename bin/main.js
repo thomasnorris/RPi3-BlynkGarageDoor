@@ -4,7 +4,7 @@ var libraries = require('./libraries'),
 	gpio = libraries.getGpio();
 
 var vPinList = [],
-	v0Pin = new blynk.VirtualPin(0), // master enable pin
+	v0Pin = new blynk.VirtualPin(0), // -Master enable pin
 	v1Pin = new blynk.VirtualPin(1),
 	v2Pin = new blynk.VirtualPin(2), 
 	v3Pin = new blynk.VirtualPin(3);
@@ -15,14 +15,14 @@ var vLedList = [],
 	v6Led = new blynk.WidgetLED(6)
 
 var gpioList = [],
-	g4 = new gpio(4, 'high'),
+	g4 = new gpio(4, 'high'), // -Must be set to 'high' for the relay board
 	g17 = new gpio(17, 'high'),
 	g27 = new gpio(27, 'high');
 
 var masterEnable = false;
 
-vPinList.push(v1Pin, v2Pin, v3Pin); // no enable pin
-gpioList.push(g4, g17, g27); // no input gpio pins (not implemented now)
+vPinList.push(v1Pin, v2Pin, v3Pin); // -No enable pin
+gpioList.push(g4, g17, g27); // -No input gpio pins (not implemented now)
 
 // Execute funcions
 blynk.on('connect', () => {
@@ -35,11 +35,13 @@ blynk.on('connect', () => {
 function blynkTriggerGpio(trigger, gpio, vLed) {
 	trigger.on('write', (value) => {
 		if (masterEnable)
+			// -Counterintuitive, but necessary for the relay board
 			value.toString() == 1 ? gpio.writeSync(0) : gpio.writeSync(1);
 		else
 			trigger.write(0);
 	});
 	setInterval(() => {
+		// -Ideally the LEDs should be triggered by a feedback signal of some sort
 		gpio.readSync() == 1 ? vLed.turnOff() : vLed.turnOn();
 	}, 250);
 }
