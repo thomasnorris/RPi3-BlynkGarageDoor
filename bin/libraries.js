@@ -8,6 +8,9 @@ module.exports = {
 	},
 	getGpio: () => {
 		return require('onoff').Gpio;
+	},
+	getWol: () => {
+		return require('wol');
 	}
 }
 
