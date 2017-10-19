@@ -4,23 +4,23 @@ var libraries = require('./libraries'),
 	gpio = libraries.getGpio(),
 	wol = libraries.getWol();
 
-var vPinList = [],
-	vLedList - [], // -Future implementation
-	gpioList = [],
-	v0Pin = new blynk.VirtualPin(0),
-	v1Pin = new blynk.VirtualPin(1),
-	//v_Led = new blynk.WidgetLED(_), // -Left in for future reference
-	g4 = new gpio(4, 'high'); // -Must be set to 'high' for the relay board
+var vPinList = {
+	v0Pin: new blynk.VirtualPin(0),
+	v1Pin: new blynk.VirtualPin(1),
+};
 
-vPinList.push(v0Pin, v1Pin); // -No enable pin
-gpioList.push(g4); // -No input gpio pins (not implemented now)
+var gpioList = {
+	g4: new gpio(4, 'high'),
+};
 
-const LEVIATHAN_MAC = '70:8B:CD:4E:33:6A';
+var constList = {
+	LEVIATHAN_MAC: '70:8B:CD:4E:33:6A',
+}
 
+// -Main call
 blynk.on('connect', () => {
-	setupLists();
-	blynkTriggerGpio(v0Pin, g4);
-	blynkTriggerWol(v1Pin, LEVIATHAN_MAC);
+	blynkTriggerGpio(vPinList['v0Pin'], gpioList['g4']);
+	blynkTriggerWol(vPinList['v1Pin'], constList['LEVIATHAN_MAC']);
 });
 
 function blynkTriggerGpio(trigger, gpio) {
