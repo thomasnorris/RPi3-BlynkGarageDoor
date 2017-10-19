@@ -1,25 +1,27 @@
 
-var libraries = require('./libraries'),
-	blynk = libraries.getBlynk(),
-	gpio = libraries.getGpio(),
-	wol = libraries.getWol();
+var	blynkLibrary = require('blynk-library'),
+	blynkAuth = require('./blynk-auth').getAuth(),
+	_blynk = new blynkLibrary.Blynk(blynkAuth),
+	_gpio = require('onoff').Gpio,
+	_wol = require('wol');
 
-var vPinList = [],
-	vLedList = [], // -Future implementation
-	gpioList = [],
-	v0Pin = new blynk.VirtualPin(0),
-	v1Pin = new blynk.VirtualPin(1),
-	//v_Led = new blynk.WidgetLED(_), // -Left in for future reference
-	g4 = new gpio(4, 'high'); // -Must be set to 'high' for the relay board
+var _vPinList = {
+	v0Pin: new _blynk.VirtualPin(0),
+	v1Pin: new _blynk.VirtualPin(1),
+};
 
-vPinList.push(v0Pin, v1Pin); // -No enable pin
-gpioList.push(g4); // -No input gpio pins (not implemented now)
+var _gpioList = {
+	g4: new _gpio(4, 'high'),
+};
 
-const LEVIATHAN_MAC = '70:8B:CD:4E:33:6A';
+var _constList = {
+	LEVIATHAN_MAC: '70:8B:CD:4E:33:6A',
+}
 
-blynk.on('connect', () => {
-	blynkTriggerGpio(v0Pin, g4);
-	blynkTriggerWol(v1Pin, LEVIATHAN_MAC);
+// -Main call
+_blynk.on('connect', () => {
+	blynkTriggerGpio(_vPinList['v0Pin'], _gpioList['g4']);
+	blynkTriggerWol(_vPinList['v1Pin'], _constList['LEVIATHAN_MAC']);
 });
 
 function blynkTriggerGpio(trigger, gpio) {
@@ -30,6 +32,6 @@ function blynkTriggerGpio(trigger, gpio) {
 
 function blynkTriggerWol(trigger, wolMac) {
 	trigger.on('write', () => {
-		wol.wake(LEVIATHAN_MAC, () => {});
+		_wol.wake(wolMac, () => {});
 	});
 }
