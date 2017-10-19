@@ -1,8 +1,9 @@
 
-var libraries = require('./libraries'),
-	_blynk = libraries.getBlynk(),
-	_gpio = libraries.getGpio(),
-	_wol = libraries.getWol();
+var	blynkLibrary = require('blynk-library'),
+	blynkAuth = require('./blynk-auth').getAuth(),
+	_blynk = new blynkLibrary.Blynk(blynkAuth),
+	_gpio = require('onoff').Gpio,
+	_wol = require('wol');
 
 var _vPinList = {
 	v0Pin: new _blynk.VirtualPin(0),
@@ -18,7 +19,7 @@ var _constList = {
 }
 
 // -Main call
-blynk.on('connect', () => {
+_blynk.on('connect', () => {
 	blynkTriggerGpio(_vPinList['v0Pin'], _gpioList['g4']);
 	blynkTriggerWol(_vPinList['v1Pin'], _constList['LEVIATHAN_MAC']);
 });
@@ -31,6 +32,6 @@ function blynkTriggerGpio(trigger, gpio) {
 
 function blynkTriggerWol(trigger, wolMac) {
 	trigger.on('write', () => {
-		_wol.wake(LEVIATHAN_MAC, () => {});
+		_wol.wake(wolMac, () => {});
 	});
 }
