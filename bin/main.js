@@ -1,26 +1,26 @@
 
 var libraries = require('./libraries'),
-	blynk = libraries.getBlynk(),
-	gpio = libraries.getGpio(),
-	wol = libraries.getWol();
+	_blynk = libraries.getBlynk(),
+	_gpio = libraries.getGpio(),
+	_wol = libraries.getWol();
 
-var vPinList = {
-	v0Pin: new blynk.VirtualPin(0),
-	v1Pin: new blynk.VirtualPin(1),
+var _vPinList = {
+	v0Pin: new _blynk.VirtualPin(0),
+	v1Pin: new _blynk.VirtualPin(1),
 };
 
-var gpioList = {
-	g4: new gpio(4, 'high'),
+var _gpioList = {
+	g4: new _gpio(4, 'high'),
 };
 
-var constList = {
+var _constList = {
 	LEVIATHAN_MAC: '70:8B:CD:4E:33:6A',
 }
 
 // -Main call
 blynk.on('connect', () => {
-	blynkTriggerGpio(vPinList['v0Pin'], gpioList['g4']);
-	blynkTriggerWol(vPinList['v1Pin'], constList['LEVIATHAN_MAC']);
+	blynkTriggerGpio(_vPinList['v0Pin'], _gpioList['g4']);
+	blynkTriggerWol(_vPinList['v1Pin'], _constList['LEVIATHAN_MAC']);
 });
 
 function blynkTriggerGpio(trigger, gpio) {
@@ -31,6 +31,6 @@ function blynkTriggerGpio(trigger, gpio) {
 
 function blynkTriggerWol(trigger, wolMac) {
 	trigger.on('write', () => {
-		wol.wake(LEVIATHAN_MAC, () => {});
+		_wol.wake(LEVIATHAN_MAC, () => {});
 	});
 }
