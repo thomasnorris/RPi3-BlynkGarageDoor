@@ -5,7 +5,7 @@ var libraries = require('./libraries'),
 	wol = libraries.getWol();
 
 var vPinList = [],
-	vLedList - [], // -Future implementation
+	vLedList = [], // -Future implementation
 	gpioList = [],
 	v0Pin = new blynk.VirtualPin(0),
 	v1Pin = new blynk.VirtualPin(1),
@@ -18,7 +18,6 @@ gpioList.push(g4); // -No input gpio pins (not implemented now)
 const LEVIATHAN_MAC = '70:8B:CD:4E:33:6A';
 
 blynk.on('connect', () => {
-	setupLists();
 	blynkTriggerGpio(v0Pin, g4);
 	blynkTriggerWol(v1Pin, LEVIATHAN_MAC);
 });
