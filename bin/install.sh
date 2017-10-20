@@ -8,7 +8,7 @@ NC="\033[0m"
 # --Main installer
 set -e
 echo -e "${BLUE}Fetching updates...${NC}"
-sudo apt-get update && apt-get upgrade 
+sudo apt-get update -y && apt-get upgrade -y 
 echo -e "${BLUE}Installing Node.js and NPM...${NC}"
 sudo curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install -y nodejs
