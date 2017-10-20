@@ -1,5 +1,4 @@
-var _csv = require('fast-csv'),
-	_fs = require('fs'),
+var _fs = require('fs'),
 	_fileData;
 
 const FILE_NAME = 'Data.json';
@@ -16,7 +15,7 @@ module.exports = {
 				Object.keys(_constList).forEach((key) => {
 					tempData[_constList[key]] = [];
 				});
-				
+
 				module.exports.WriteToFile(tempData);
 			}
 			console.log('Loaded ' + FILE_NAME + ' successfully.');
