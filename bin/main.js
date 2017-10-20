@@ -2,12 +2,11 @@
 var	blynkLibrary = require('blynk-library'),
 	blynkAuth = require('./blynk-auth').getAuth(),
 	_blynk = new blynkLibrary.Blynk(blynkAuth),
-	_gpio = require('onoff').Gpio,
-	_wol = require('wol');
+	_gpio = require('onoff').Gpio;
 
 var _vPinList = [],
 	_v0Pin = new _blynk.VirtualPin(0), // -Columbia valve
-	_v1Pin = new _blynk.VirtualPin(1), // -Wake Leviathan
+	_v1Pin = new _blynk.VirtualPin(1), // -Override
 	_v2Pin = new _blynk.VirtualPin(2), // -Well valve
 	_v3Pin = new _blynk.VirtualPin(3), // -Recharge level
 	_v4Pin = new _blynk.VirtualPin(4); // -Recharge counter
@@ -17,7 +16,6 @@ var _gpioList = [],
 	_g4 = new _gpio(4, 'high');
 _gpioList.push(_g4);
 
-const LEVIATHAN_MAC = '70:8B:CD:4E:33:6A';
 const RECHARGE_TIME_MINUTES = 90;
 const RECHARGE_COUNTUP_MILI = 1000;
 
@@ -27,7 +25,6 @@ var _rechargeCounter = 1;
 _blynk.on('connect', () => {
 	initialize();
 	blynkTriggerGpio(_v0Pin, _g4);
-	blynkTriggerWol(_v1Pin, LEVIATHAN_MAC);
 	countUp(_v2Pin, _v3Pin, _v4Pin);
 });
 
@@ -64,11 +61,5 @@ function countUp(trigger, display, counter) {
 function blynkTriggerGpio(trigger, gpio) {
 	trigger.on('write', (value) => {
 		value.toString() == 1 ? gpio.writeSync(0) : gpio.writeSync(1);
-	});
-}
-
-function blynkTriggerWol(trigger, wolMac) {
-	trigger.on('write', () => {
-		_wol.wake(wolMac, () => {});
 	});
 }
