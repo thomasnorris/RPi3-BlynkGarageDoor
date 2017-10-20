@@ -19,7 +19,7 @@ _gpioList.push(_g4);
 
 const LEVIATHAN_MAC = '70:8B:CD:4E:33:6A';
 const RECHARGE_TIME_MINUTES = 90;
-const RECHARGE_COUNTUP_MILI = 60000;
+const RECHARGE_COUNTUP_MILI = 1000;
 
 var _rechargeCounter = 1;
 
@@ -44,12 +44,13 @@ function countUp(trigger, display, counter) {
 	var interval;
 	trigger.on('write', (value) => {
 		if (value.toString() == 1) {
-			counter.write(_rechargeCounter++);
 			var i = 0;
 			interval = setInterval(() => {
 				i++;
-				if (i == RECHARGE_TIME_MINUTES + 1)
+				if (i == RECHARGE_TIME_MINUTES + 1) {
+					counter.write(_rechargeCounter++);
 					clearInterval(interval);
+				}
 				else
 					display.write(i);
 			}, RECHARGE_COUNTUP_MILI);
