@@ -1,8 +1,9 @@
 
 var _fs = require('fs');
 
+const DATA_PATH = __dirname + '/data/';
 const FILE_NAME = 'Data.json';
-const FILE_PATH = __dirname + '/data/' + FILE_NAME;
+const FILE_PATH = DATA_PATH + FILE_NAME;
 
 module.exports = {
 	LoadDatabase: function(constList, callback) {
