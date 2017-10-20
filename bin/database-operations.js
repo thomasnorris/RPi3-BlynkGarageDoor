@@ -1,19 +1,19 @@
-var _fs = require('fs'),
-	_fileData;
+
+var _fs = require('fs');
 
 const FILE_NAME = 'Data.json';
 const FILE_PATH = __dirname + '/data/' + FILE_NAME;
 
 module.exports = {
-	LoadDatabase: function(_constList, callback) {
+	LoadDatabase: function(constList, callback) {
 		_fs.exists(FILE_PATH, (exists) => {
 			if (!exists) {
 				console.log(FILE_NAME + ' does not exist, initializing...');
 				_fs.openSync(FILE_PATH, 'w');
 
 				var tempData = {};
-				Object.keys(_constList).forEach((key) => {
-					tempData[_constList[key]] = [];
+				Object.keys(constList).forEach((key) => {
+					tempData[constList[key]] = [];
 				});
 
 				module.exports.WriteToFile(tempData);
