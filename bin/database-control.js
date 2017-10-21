@@ -8,12 +8,7 @@ var _constList = {
 	4: 'Call For Heat Counter',
 }
 
-var _data;
-
 dbo.LoadDatabase(_constList, (data) => {
-	_data = data;
-	dbo.AddToDatabase(_data, _data.Date, new Date().getSeconds(), (data) => {
-		_data = data;
-		console.log(_data);
-	});
+	//dbo.AddToDatabase(data, data.Date, new Date().getSeconds(), (data) => {	
+	//});
 });
