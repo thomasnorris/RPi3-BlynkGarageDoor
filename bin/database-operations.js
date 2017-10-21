@@ -21,8 +21,8 @@ module.exports = {
 					tempData[constList[key]] = [];
 				});
 
-				module.exports.WriteToDatabase(tempData);
 				CreateNewCsv(tempData);
+				module.exports.WriteToDatabase(tempData, true);
 			}
 			callback(module.exports.ReadFromFile());
 			console.log('Loaded ' + FILE_NAME + ' successfully.');
@@ -40,14 +40,21 @@ module.exports = {
 			csvWriter.end();
 		}
 	},
-	WriteToDatabase: function(data) {
+	WriteToDatabase: function(data, firstTime) {
 		_fs.writeFileSync(FILE_PATH, JSON.stringify(data, null, '\t'));
+		var csvData = {};
+		Object.keys(data).forEach((key) => {
+			csvData[key] = data[key][data[key].length - 1];
+		});
+		var csvWriter = _csvWriter({ sendHeaders: false });
+		csvWriter.pipe(_fs.createWriteStream(CSV_PATH, { flags: 'a' }));
+		csvWriter.write(csvData);
+		csvWriter.end();
 	},
 	AddToDatabase: function(data, key, value, callback) {
 		key.push(value);
-		module.exports.WriteToDatabase(data);
+		module.exports.WriteToDatabase(data, false);
 		callback(module.exports.ReadFromFile());
-
 	},
 	ReadFromFile: function() {
 		return JSON.parse(_fs.readFileSync(FILE_PATH))

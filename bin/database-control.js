@@ -9,6 +9,6 @@ var _constList = {
 }
 
 dbo.LoadDatabase(_constList, (data) => {
-	//dbo.AddToDatabase(data, data.Date, new Date().getSeconds(), (data) => {	
-	//});
+	dbo.AddToDatabase(data, data.Date, new Date().getSeconds(), (data) => {	
+	});
 });
