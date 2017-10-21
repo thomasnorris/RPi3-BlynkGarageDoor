@@ -19,8 +19,8 @@ module.exports = {
 
 				module.exports.WriteToFile(tempData);
 			}
-			console.log('Loaded ' + FILE_NAME + ' successfully.');
 			callback(module.exports.ReadFromFile());
+			console.log('Loaded ' + FILE_NAME + ' successfully.');
 		});
 	},
 	WriteToFile: function(data) {

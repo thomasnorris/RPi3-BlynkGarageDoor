@@ -14,5 +14,6 @@ dbo.LoadDatabase(_constList, (data) => {
 	_data = data;
 	dbo.AddToDatabase(_data, _data.Date, new Date().getSeconds(), (data) => {
 		_data = data;
+		console.log(_data);
 	});
 });
