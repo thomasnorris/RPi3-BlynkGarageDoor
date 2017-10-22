@@ -62,10 +62,7 @@ module.exports = {
 	},
 	CsvWriter: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
 		var writer = _csvWriter(csvWriterArgs);
-		if (writeStreamArgs)
-			writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
-		else
-			writer.pipe(_fs.createWriteStream(filePath));
+		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
 		writer.write(csvData);
 		writer.end();
 	}
