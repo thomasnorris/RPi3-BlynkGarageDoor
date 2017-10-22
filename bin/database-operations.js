@@ -8,6 +8,9 @@ const DB_FILE_PATH = DATA_PATH + DB_FILE_NAME;
 const CSV_FILE_NAME = 'Data.csv';
 const CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME;
 
+var _data;
+var _headers;
+
 module.exports = {
 	LoadDatabase: function(constList, callback) {
 		_fs.exists(DB_FILE_PATH, (exists) => {
@@ -22,25 +25,27 @@ module.exports = {
 				});
 
 				CreateNewCsv(tempData);
-				module.exports.WriteToDatabase(tempData);
+				module.exports.WriteToFiles(tempData);
 			}
-			callback(module.exports.ReadFromFile());
+			_data = module.exports.ReadDataBase();
+			_headers = Object.keys(_data);
+			callback();
 			console.log('Loaded ' + DB_FILE_NAME + ' successfully.');
 		});
 		function CreateNewCsv(data) {
-			var csvHeaders = [];
+			var tempHeaders = [];
 			var csvData = [];
 			Object.keys(data).forEach((key) => {
-				csvHeaders.push(key);
-				csvData.push(data[key]);
+				tempHeaders.push(key);
+				csvData.push([]);
 			});
-			var csvWriter = _csvWriter({ headers: csvHeaders })
-			csvWriter.pipe(_fs.createWriteStream(CSV_FILE_PATH));
-			csvWriter.write(csvData);
-			csvWriter.end();
+			var writer = _csvWriter({ headers: tempHeaders })
+			writer.pipe(_fs.createWriteStream(CSV_FILE_PATH));
+			writer.write(csvData);
+			writer.end();
 		}
 	},
-	WriteToDatabase: function(data) {
+	WriteToFiles: function(data) {
 		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, '\t'));
 		var csvData = {};
 		Object.keys(data).forEach((key) => {
@@ -51,12 +56,14 @@ module.exports = {
 		csvWriter.write(csvData);
 		csvWriter.end();
 	},
-	AddToDatabase: function(data, key, value, callback) {
-		key.push(value);
-		module.exports.WriteToDatabase(data);
-		callback(module.exports.ReadFromFile());
+	AddToDatabase: function(newData) {
+		for (var i = 0; i < newData.length; i++) {
+			_data[_headers[i]].push(newData[i]);
+		}
+		module.exports.WriteToFiles(_data);
+		_data = module.exports.ReadDataBase();
 	},
-	ReadFromFile: function() {
+	ReadDataBase: function() {
 		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
 	}
 }

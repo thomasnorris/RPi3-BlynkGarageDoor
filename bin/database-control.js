@@ -8,7 +8,6 @@ var _constList = {
 	4: 'Call For Heat Counter',
 }
 
-dbo.LoadDatabase(_constList, (data) => {
-	dbo.AddToDatabase(data, data.Date, new Date().getSeconds(), (data) => {	
-	});
+dbo.LoadDatabase(_constList, () => {
+	dbo.AddToDatabase([new Date(), 60, 15, 455, 977]);
 });

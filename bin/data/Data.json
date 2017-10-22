@@ -1,9 +1,22 @@
 {
 	"Date": [
-		19
+		22,
+		"2017-10-22T15:05:05.358Z"
 	],
-	"Recharge Timer": [],
-	"Columbia Timer": [],
-	"Well Timer": [],
-	"Call For Heat Counter": []
+	"Recharge Timer": [
+		0,
+		60
+	],
+	"Columbia Timer": [
+		12,
+		15
+	],
+	"Well Timer": [
+		455,
+		455
+	],
+	"Call For Heat Counter": [
+		977,
+		977
+	]
 }
