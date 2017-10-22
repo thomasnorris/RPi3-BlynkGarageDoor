@@ -30,7 +30,6 @@ module.exports = {
 			_data = module.exports.ReadDataBase();
 			_headers = Object.keys(_data);
 			callback();
-			console.log('Loaded ' + DB_FILE_NAME + ' successfully.');
 		});
 
 		function CreateNewCsv() {
