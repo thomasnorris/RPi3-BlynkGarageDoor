@@ -19,35 +19,35 @@ module.exports = {
 				_fs.openSync(DB_FILE_PATH, 'w');
 				_fs.openSync(CSV_FILE_PATH, 'w');
 
-				var tempData = {};
+				_data = {};
 				Object.keys(constList).forEach((key) => {
-					tempData[constList[key]] = [];
+					_data[constList[key]] = [];
 				});
 
-				CreateNewCsv(tempData);
-				module.exports.WriteToFiles(tempData);
+				CreateNewCsv();
+				module.exports.WriteToFiles();
 			}
 			_data = module.exports.ReadDataBase();
 			_headers = Object.keys(_data);
 			callback();
 			console.log('Loaded ' + DB_FILE_NAME + ' successfully.');
 		});
-		
-		function CreateNewCsv(data) {
+
+		function CreateNewCsv() {
 			var tempHeaders = [];
 			var csvData = [];
-			Object.keys(data).forEach((key) => {
+			Object.keys(_data).forEach((key) => {
 				tempHeaders.push(key);
 				csvData.push([]);
 			});
 			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
 		}
 	},
-	WriteToFiles: function(data) {
-		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, '\t'));
+	WriteToFiles: function() {
+		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
 		var csvData = {};
-		Object.keys(data).forEach((key) => {
-			csvData[key] = data[key][data[key].length - 1];
+		Object.keys(_data).forEach((key) => {
+			csvData[key] = _data[key][_data[key].length - 1];
 		});
 		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
 	},
@@ -55,7 +55,7 @@ module.exports = {
 		for (var i = 0; i < newData.length; i++) {
 			_data[_headers[i]].push(newData[i]);
 		}
-		module.exports.WriteToFiles(_data);
+		module.exports.WriteToFiles();
 		_data = module.exports.ReadDataBase();
 	},
 	ReadDataBase: function() {
