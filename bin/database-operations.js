@@ -32,6 +32,7 @@ module.exports = {
 			callback();
 			console.log('Loaded ' + DB_FILE_NAME + ' successfully.');
 		});
+		
 		function CreateNewCsv(data) {
 			var tempHeaders = [];
 			var csvData = [];
@@ -39,10 +40,7 @@ module.exports = {
 				tempHeaders.push(key);
 				csvData.push([]);
 			});
-			var writer = _csvWriter({ headers: tempHeaders })
-			writer.pipe(_fs.createWriteStream(CSV_FILE_PATH));
-			writer.write(csvData);
-			writer.end();
+			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
 		}
 	},
 	WriteToFiles: function(data) {
@@ -51,10 +49,7 @@ module.exports = {
 		Object.keys(data).forEach((key) => {
 			csvData[key] = data[key][data[key].length - 1];
 		});
-		var csvWriter = _csvWriter({ sendHeaders: false });
-		csvWriter.pipe(_fs.createWriteStream(CSV_FILE_PATH, { flags: 'a' }));
-		csvWriter.write(csvData);
-		csvWriter.end();
+		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
 	},
 	AddToDatabase: function(newData) {
 		for (var i = 0; i < newData.length; i++) {
@@ -65,5 +60,14 @@ module.exports = {
 	},
 	ReadDataBase: function() {
 		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
+	},
+	CsvWriter: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
+		var writer = _csvWriter(csvWriterArgs);
+		if (writeStreamArgs)
+			writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
+		else
+			writer.pipe(_fs.createWriteStream(filePath));
+		writer.write(csvData);
+		writer.end();
 	}
 }
