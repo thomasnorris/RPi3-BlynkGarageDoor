@@ -84,7 +84,6 @@ function StartWellRehargeMonitoring() {
 				i++;
 				if (i == RECHARGE_TIME_MINUTES + 1) {
 					_wellRechargeCounter.write(++_newData[1]);
-					_dbo.AddToDatabase(_newData);
 					clearInterval(interval);
 				}
 				else
