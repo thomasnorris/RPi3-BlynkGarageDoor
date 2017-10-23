@@ -20,6 +20,7 @@ var	_manualOverride = new _blynk.VirtualPin(0),
 	_boilerCallForGasLed = new _blynk.WidgetLED(11); 
 
 var _gpioList = [],
+	_wellRechargeInput = new gpio("FILLME", 'in');
 	_g4 = new _gpio(4, 'high');
 _gpioList.push(_g4);
 
@@ -30,7 +31,7 @@ const CRON_REBOOT_SCHEDULE = '0 0 24 * * *';
 
 var _mapping = {
 	0: 'Date',
-	1: 'Recharge Timer',
+	1: 'Recharge Counter',
 	2: 'Columbia Timer',
 	3: 'Well Timer',
 	4: 'Call For Heat Counter'
@@ -47,8 +48,8 @@ _blynk.on('connect', () => {
 		//_newData[3] = 'get the idea?'
 		ResetAllGpio();
 		BlynkTriggerGpio(_manualColumbia, _g4);
-		CountUp(_manualWell, _wellRechargeLevel, _wellRechargeCounter);
-		
+		StartWellChargeMonitoring();
+		StartSchedules()
 	});
 });
 
@@ -67,22 +68,23 @@ function ResetAllGpio() {
 	});
 }
 
-function CountUp(trigger, display, counter) {
+function StartWellChargeMonitoring() {
 	var interval;
-	trigger.on('write', (value) => {
+	_wellRechargeInput.watch((err, value) => {
+		if (err) throw err;
 		if (value.toString() == 1) {
 			var i = 0;
 			interval = setInterval(() => {
 				i++;
 				if (i == RECHARGE_TIME_MINUTES + 1) {
-					//counter.write();
+					_wellRechargeCounter.write(++_newData[1]);
 					clearInterval(interval);
 				}
 				else
-					display.write(i);
+					_wellRechargeLevel.write(i);
 			}, RECHARGE_COUNTUP_MILI);
 		} else {
-			display.write(0);
+			_wellRechargeLevel.write(0);
 			clearInterval(interval);
 		}
 	});
