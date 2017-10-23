@@ -1,5 +1,6 @@
 
-var dbo = require('./database-operations');
+var _dbo = require('./database-operations');
+var _schedule = require('node-schedule');
 
 var _date = {
 	Prop: new Date()
@@ -29,6 +30,9 @@ var _mapping = {
 	'Call For Heat Counter': _call 
 }
 
-dbo.LoadDatabase(_mapping, () => {
-	dbo.AddToDatabase(_mapping);
+_dbo.LoadDatabase(_mapping, () => {
+	_schedule.scheduleJob('* * * * * *', () => {
+		_mapping.Date.Prop = new Date().getSeconds();
+		_dbo.AddToDatabase(_mapping);
+	});
 });
