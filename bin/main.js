@@ -26,6 +26,7 @@ _gpioList.push(_g4);
 const RECHARGE_TIME_MINUTES = 90;
 const RECHARGE_COUNTUP_MILI = 1000;
 const CRON_LOG_SCHEDULE = '0 0 7,19 * * *';
+const CRON_REBOOT_SCHEDULE = '0 0 24 * * *';
 
 var _mapping = {
 	0: 'Date',
@@ -47,13 +48,16 @@ _blynk.on('connect', () => {
 		ResetAllGpio();
 		BlynkTriggerGpio(_manualColumbia, _g4);
 		CountUp(_manualWell, _wellRechargeLevel, _wellRechargeCounter);
-		StartLoggingJob();
+		
 	});
 });
 
-function StartLoggingJob() {
+function StartSchedules() {
 	_schedule.scheduleJob(CRON_LOG_SCHEDULE, () => {
     	_dbo.AddToDatabase(_newData);
+	});
+	_schedule.scheduleJob(CRON_REBOOT_SCHEDULE, () => {
+		require('child_process').exec('sudo reboot');
 	});
 }
 
