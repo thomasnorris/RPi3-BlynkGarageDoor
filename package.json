@@ -6,6 +6,7 @@
   "dependencies": {
     "blynk-library": "^0.4.7",
     "csv-write-stream": "^2.0.0",
+    "node-schedule": "^1.2.5",
     "npm": "^5.4.2",
     "onoff": "^1.1.7"
   },
