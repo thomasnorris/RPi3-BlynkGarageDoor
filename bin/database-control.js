@@ -1,19 +1,38 @@
 
-var dbo = require('./database-operations');
-var _constList = {
-	0: 'Date',
-	1: 'Recharge Timer',
-	2: 'Columbia Timer',
-	3: 'Well Timer',
-	4: 'Call For Heat Counter',
+var _dbo = require('./database-operations');
+var _schedule = require('node-schedule');
+
+var _date = {
+	Prop: new Date()
 }
 
-var _data;
+var _recharge = {
+	Prop: new Date().getSeconds()
+}
 
-dbo.LoadDatabase(_constList, (data) => {
-	_data = data;
-	dbo.AddToDatabase(_data, _data.Date, new Date().getSeconds(), (data) => {
-		_data = data;
-		console.log(_data);
+var _columbia = {
+	Prop: new Date().getMonth()
+}
+
+var _well = {
+	Prop: new Date().getDate()
+}
+
+var _call = {
+	Prop: new Date().getYear()
+}
+
+var _mapping = {
+	'Date': _date,
+	'Recharge Timer': _recharge,
+	'Columbia Timer': _columbia,
+	'Well Timer': _well,
+	'Call For Heat Counter': _call 
+}
+
+_dbo.LoadDatabase(_mapping, () => {
+	_schedule.scheduleJob('* * * * * *', () => {
+		_mapping.Date.Prop = new Date().getSeconds();
+		_dbo.AddToDatabase(_mapping);
 	});
 });
