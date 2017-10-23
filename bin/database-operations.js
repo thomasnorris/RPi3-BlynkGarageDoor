@@ -12,7 +12,7 @@ var _data;
 var _headers;
 
 module.exports = {
-	LoadDatabase: function(constList, callback) {
+	LoadDatabase: function(mapping, callback) {
 		_fs.exists(DB_FILE_PATH, (exists) => {
 			if (!exists) {
 				console.log(DB_FILE_NAME + ' does not exist, creating...');
@@ -20,8 +20,8 @@ module.exports = {
 				_fs.openSync(CSV_FILE_PATH, 'w');
 
 				_data = {};
-				Object.keys(constList).forEach((key) => {
-					_data[constList[key]] = [];
+				Object.keys(mapping).forEach((key) => {
+					_data[key] = [];
 				});
 
 				CreateNewCsv();
@@ -42,6 +42,7 @@ module.exports = {
 			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
 		}
 	},
+
 	WriteToFiles: function() {
 		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
 		var csvData = {};
@@ -50,16 +51,20 @@ module.exports = {
 		});
 		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
 	},
-	AddToDatabase: function(newData) {
-		for (var i = 0; i < newData.length; i++) {
-			_data[_headers[i]].push(newData[i]);
-		}
+
+	AddToDatabase: function(mapping) {
+		Object.keys(mapping).forEach((key) => {
+			// -TODO: Change Prop to the corrisponding path for the blynk vpin value
+			_data[key].push(mapping[key].Prop)
+		});
 		module.exports.WriteToFiles();
 		_data = module.exports.ReadDataBase();
 	},
+
 	ReadDataBase: function() {
 		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
 	},
+	
 	CsvWriter: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
 		var writer = _csvWriter(csvWriterArgs);
 		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
