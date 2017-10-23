@@ -26,13 +26,16 @@ module.exports = {
 
 				CreateNewCsv();
 				module.exports.WriteToFiles();
-				console.log('Created successfully.');
+				console.log('Files created successfully.');
 			}
-			_data = module.exports.ReadDataBase();
+			_data = module.exports.ReadDatabase();
 			_headers = Object.keys(_data);
+
 			var recentData = module.exports.GetRecentlyLoggedData();
+			var returnData = ConvertRecentDataIntoReturnData(recentData);
+
 			console.log(DB_FILE_NAME + ' loaded successfully.');
-			callback(recentData);
+			callback(returnData);
 		});
 
 		function CreateNewCsv() {
@@ -44,7 +47,23 @@ module.exports = {
 			});
 			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
 		}
+
+		function ConvertRecentDataIntoReturnData(recentData) {
+			var recentValues = [];
+			Object.keys(recentData).forEach((key) => {
+				recentValues.push(recentData[key]);
+			});
+			var returnData = [];
+			for (var i = 1; i < recentValues.length; i++) {
+				if (recentValues[i] == undefined)
+					returnData[i - 1] = 0;
+				else
+					returnData[i - 1] = recentValues[i];
+			}
+			return returnData;
+		}
 	},
+	
 	GetRecentlyLoggedData: function() {
 		var recentData = {};
 		Object.keys(_data).forEach((key) => {
@@ -60,14 +79,27 @@ module.exports = {
 	},
 
 	AddToDatabase: function(newData) {
+		_data[_headers[0]].push(GetCurrentDate());
 		for (var i = 0; i < newData.length; i++) {
-			_data[_headers[i]].push(newData[i]);
+			_data[_headers[i + 1]].push(newData[i]);
 		}
 		module.exports.WriteToFiles();
-		_data = module.exports.ReadDataBase();
+		_data = module.exports.ReadDatabase();
+
+		function GetCurrentDate() {
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth() + 1;
+			if (dd < 10)
+				dd = '0' + dd;
+			if (mm < 10)
+				mm = '0' + mm;
+
+			return mm + '/' + dd + '/' + today.getFullYear();
+		}
 	},
 
-	ReadDataBase: function() {
+	ReadDatabase: function() {
 		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
 	},
 	
