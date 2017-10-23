@@ -3,6 +3,7 @@ var	blynkLibrary = require('blynk-library'),
 	blynkAuth = require('./blynk-auth').getAuth(),
 	_blynk = new blynkLibrary.Blynk(blynkAuth),
 	_gpio = require('onoff').Gpio,
+	_schedule = require('node-scheduler'),
 	_dbo = require('./database-operations');
 
 var	_manualOverride = new _blynk.VirtualPin(0), 
@@ -24,6 +25,7 @@ _gpioList.push(_g4);
 
 const RECHARGE_TIME_MINUTES = 90;
 const RECHARGE_COUNTUP_MILI = 1000;
+const CRON_LOG_SCHEDULE = '0 0 7,19 * * *';
 
 var _mapping = {
 	0: 'Date',
@@ -39,11 +41,21 @@ var _newData = [];
 _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {
 		_newData = recentData;
+		//_newData[1] = 'something';
+		//_newData[2] = 'read a pin value'
+		//_newData[3] = 'get the idea?'
 		ResetAllGpio();
-		blynkTriggerGpio(_manualColumbia, _g4);
-		countUp(_manualWell, _wellRechargeLevel, _wellRechargeCounter);
+		BlynkTriggerGpio(_manualColumbia, _g4);
+		CountUp(_manualWell, _wellRechargeLevel, _wellRechargeCounter);
+		StartLoggingJob();
 	});
 });
+
+function StartLoggingJob() {
+	_schedule.scheduleJob(CRON_LOG_SCHEDULE, () => {
+    	_dbo.AddToDatabase(_newData);
+	});
+}
 
 function ResetAllGpio() {
 	_gpioList.forEach((gpio) => {
@@ -51,7 +63,7 @@ function ResetAllGpio() {
 	});
 }
 
-function countUp(trigger, display, counter) {
+function CountUp(trigger, display, counter) {
 	var interval;
 	trigger.on('write', (value) => {
 		if (value.toString() == 1) {
@@ -72,7 +84,7 @@ function countUp(trigger, display, counter) {
 	});
 }
 
-function blynkTriggerGpio(trigger, gpio) {
+function BlynkTriggerGpio(trigger, gpio) {
 	trigger.on('write', (value) => {
 		value.toString() == 1 ? gpio.writeSync(0) : gpio.writeSync(1);
 	});

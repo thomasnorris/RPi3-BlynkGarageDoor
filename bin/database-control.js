@@ -11,10 +11,9 @@ var _mapping = {
 }
 
 _dbo.LoadDatabase(_mapping, (recentData) => {
-	//_schedule.scheduleJob('* * * * * *', () => {
+	//_schedule.scheduleJob('0 0 7,19 * * *', () => {
     //
 	//});
-	console.log(recentData);
 	recentData[1] = 'smelly poops';
 	_dbo.AddToDatabase(recentData);
 });
