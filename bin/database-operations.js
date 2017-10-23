@@ -21,7 +21,7 @@ module.exports = {
 
 				_data = {};
 				Object.keys(mapping).forEach((key) => {
-					_data[key] = [];
+					_data[mapping[key]] = [];
 				});
 
 				CreateNewCsv();
@@ -30,8 +30,9 @@ module.exports = {
 			}
 			_data = module.exports.ReadDataBase();
 			_headers = Object.keys(_data);
-			console.log(DB_FILE_NAME + ' loaded successfully.')
-			callback();
+			var recentData = module.exports.GetRecentlyLoggedData();
+			console.log(DB_FILE_NAME + ' loaded successfully.');
+			callback(recentData);
 		});
 
 		function CreateNewCsv() {
@@ -44,21 +45,24 @@ module.exports = {
 			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
 		}
 	},
+	GetRecentlyLoggedData: function() {
+		var recentData = {};
+		Object.keys(_data).forEach((key) => {
+			recentData[key] = _data[key][_data[key].length - 1];
+		});
+		return recentData;
+	},
 
 	WriteToFiles: function() {
 		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
-		var csvData = {};
-		Object.keys(_data).forEach((key) => {
-			csvData[key] = _data[key][_data[key].length - 1];
-		});
+		var csvData = module.exports.GetRecentlyLoggedData();
 		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
 	},
 
-	AddToDatabase: function(mapping) {
-		Object.keys(mapping).forEach((key) => {
-			// -TODO: Change Prop to the corrisponding path for the blynk vpin value
-			_data[key].push(mapping[key].Prop)
-		});
+	AddToDatabase: function(newData) {
+		for (var i = 0; i < newData.length; i++) {
+			_data[_headers[i]].push(newData[i]);
+		}
 		module.exports.WriteToFiles();
 		_data = module.exports.ReadDataBase();
 	},
