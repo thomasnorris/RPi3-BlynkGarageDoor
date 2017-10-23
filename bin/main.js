@@ -20,7 +20,7 @@ var	_manualOverride = new _blynk.VirtualPin(0),
 	_boilerCallForGasLed = new _blynk.WidgetLED(11); 
 
 var _gpioList = [],
-	_wellRechargeInput = new gpio("FILLME", 'in');
+	_wellRechargeInput = new gpio("FILLME", 'in', 'both');
 	_g4 = new _gpio(4, 'high');
 _gpioList.push(_g4);
 
