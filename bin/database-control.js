@@ -20,7 +20,7 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	Object.keys(recentData).forEach((key) => {
 		recentValues.push(recentData[key]);
 	});
-	
+
 	for (var i = 1; i < recentValues.length; i++) {
 		if (recentValues[i] == undefined)
 			_blynkValues[i - 1] = 0;
@@ -28,17 +28,5 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 			_blynkValues[i - 1] = recentValues[i];
 	}	
 
-	_dbo.AddToDatabase([GetCurrentDate(), _blynkValues[0], _blynkValues[1], _blynkValues[2], _blynkValues[3]]);
+	_dbo.AddToDatabase(_blynkValues);
 });
-
-function GetCurrentDate() {
-	var today = new Date();
-	var dd = today.getDate();
-	var mm = today.getMonth() + 1;
-	if (dd < 10)
-		dd = '0' + dd;
-	if (mm < 10)
-		mm = '0' + mm;
-
-	return mm + '/' + dd + '/' + today.getFullYear();
-}

@@ -60,11 +60,24 @@ module.exports = {
 	},
 
 	AddToDatabase: function(newData) {
+		_data[_headers[0]].push(GetCurrentDate());
 		for (var i = 0; i < newData.length; i++) {
-			_data[_headers[i]].push(newData[i]);
+			_data[_headers[i + 1]].push(newData[i]);
 		}
 		module.exports.WriteToFiles();
 		_data = module.exports.ReadDataBase();
+
+		function GetCurrentDate() {
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth() + 1;
+			if (dd < 10)
+				dd = '0' + dd;
+			if (mm < 10)
+				mm = '0' + mm;
+
+			return mm + '/' + dd + '/' + today.getFullYear();
+		}
 	},
 
 	ReadDataBase: function() {
