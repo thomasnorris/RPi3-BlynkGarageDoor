@@ -10,11 +10,11 @@ var _mapping = {
 	4: 'Call For Heat Counter'
 }
 
-var _blynkValues = [];
-
 _dbo.LoadDatabase(_mapping, (recentData) => {
 	//_schedule.scheduleJob('* * * * * *', () => {
     //
 	//});
-	_dbo.AddToDatabase(_blynkValues);
+	console.log(recentData);
+	recentData[1] = 'smelly poops';
+	_dbo.AddToDatabase(recentData);
 });

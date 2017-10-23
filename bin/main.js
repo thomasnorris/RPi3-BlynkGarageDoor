@@ -2,7 +2,8 @@
 var	blynkLibrary = require('blynk-library'),
 	blynkAuth = require('./blynk-auth').getAuth(),
 	_blynk = new blynkLibrary.Blynk(blynkAuth),
-	_gpio = require('onoff').Gpio;
+	_gpio = require('onoff').Gpio,
+	_dbo = require('./database-operations');
 
 var	_manualOverride = new _blynk.VirtualPin(0), 
 	_manualColumbia = new _blynk.VirtualPin(1), 
@@ -24,10 +25,24 @@ _gpioList.push(_g4);
 const RECHARGE_TIME_MINUTES = 90;
 const RECHARGE_COUNTUP_MILI = 1000;
 
+var _mapping = {
+	0: 'Date',
+	1: 'Recharge Timer',
+	2: 'Columbia Timer',
+	3: 'Well Timer',
+	4: 'Call For Heat Counter'
+}
+
+// -maps to the _mapping object above by index
+var _newData = [];
+
 _blynk.on('connect', () => {
-	ResetAllGpio();
-	blynkTriggerGpio(_manualOverride, _g4);
-	countUp(_manualWell, _wellRechargeLevel, _wellRechargeCounter);
+	_dbo.LoadDatabase(_mapping, (recentData) => {
+		_newData = recentData;
+		ResetAllGpio();
+		blynkTriggerGpio(_manualColumbia, _g4);
+		countUp(_manualWell, _wellRechargeLevel, _wellRechargeCounter);
+	});
 });
 
 function ResetAllGpio() {

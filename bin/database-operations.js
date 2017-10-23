@@ -56,9 +56,9 @@ module.exports = {
 			var returnData = [];
 			for (var i = 1; i < recentValues.length; i++) {
 				if (recentValues[i] == undefined)
-					returnData[i - 1] = 0;
+					returnData[i] = 0;
 				else
-					returnData[i - 1] = recentValues[i];
+					returnData[i] = recentValues[i];
 			}
 			return returnData;
 		}
@@ -80,8 +80,8 @@ module.exports = {
 
 	AddToDatabase: function(newData) {
 		_data[_headers[0]].push(GetCurrentDate());
-		for (var i = 0; i < newData.length; i++) {
-			_data[_headers[i + 1]].push(newData[i]);
+		for (var i = 1; i < newData.length; i++) {
+			_data[_headers[i]].push(newData[i]);
 		}
 		module.exports.WriteToFiles();
 		_data = module.exports.ReadDatabase();
