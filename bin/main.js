@@ -28,8 +28,8 @@ _gpioArr.push(_g4); // -no input gpio
 
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
-const CRON_LOG_SCHEDULE = '0 7,19 * * *';
-const CRON_REBOOT_SCHEDULE = '0 0 * * *';
+const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
+const CRON_DATABASE_WRITE_SCHEDULE = '0 */2 * * *';
 
 var _mapping = {
 	DATE: 'Date',
@@ -52,12 +52,12 @@ _blynk.on('connect', () => {
 });
 
 function StartSchedules() {
-	_schedule.scheduleJob(CRON_LOG_SCHEDULE, () => {
-    	_dbo.AddToDatabase(_newData);
+	_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
+    	_dbo.WriteToCsv();
 	});
-	_schedule.scheduleJob(CRON_REBOOT_SCHEDULE, () => {
-		require('child_process').exec('sudo reboot');
-	});
+	_schedule.scheduleJob(CRON_DATABASE_WRITE_SCHEDULE, () => {
+		_dbo.AddToDatabase(_newData);
+	})
 }
 
 function InitializeValues() {

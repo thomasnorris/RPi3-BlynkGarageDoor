@@ -25,7 +25,8 @@ module.exports = {
 				});
 
 				CreateNewCsv();
-				module.exports.WriteToFiles();
+				module.exports.WriteToDatabase();
+				module.exports.WriteToCsv();
 				console.log('Files created successfully.');
 			}
 			_data = module.exports.ReadDatabase();
@@ -61,10 +62,13 @@ module.exports = {
 		return recentData;
 	},
 
-	WriteToFiles: function() {
-		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
+	WriteToCsv: function() {
 		var csvData = module.exports.GetRecentlyLoggedData();
 		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
+	},
+
+	WriteToDatabase: function() {
+		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
 	},
 
 	AddToDatabase: function(newData) {
@@ -73,7 +77,7 @@ module.exports = {
 		for (var i = 1; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
 		}
-		module.exports.WriteToFiles();
+		module.exports.WriteToDatabase();
 		_data = module.exports.ReadDatabase();
 
 		function GetCurrentDate() {
