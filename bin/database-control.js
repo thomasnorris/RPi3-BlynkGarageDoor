@@ -20,5 +20,5 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	//	_dbo.WriteToCsv();
 	//}, 100);
 	
-	_dbo.PurgeDatabase(_mapping);
+	_dbo.CreateArchives(_mapping);
 });

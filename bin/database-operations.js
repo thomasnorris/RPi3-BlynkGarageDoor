@@ -120,7 +120,7 @@ module.exports = {
 		writer.end();
 	},
 
-	PurgeDatabase: function(mapping) {
+	CreateArchives: function(mapping) {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
 		var date =  module.exports.GetCurrentDate().WithoutTime();
 		_fs.renameSync(DB_FILE_PATH, ARCHIVE_PATH + DB_FILE_NAME + '-' + date + DB_FILE_EXTENSION);
