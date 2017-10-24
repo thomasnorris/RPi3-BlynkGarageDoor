@@ -32,10 +32,12 @@ module.exports = {
 			_headers = Object.keys(_data);
 
 			var recentData = module.exports.GetRecentlyLoggedData();
-			var returnData = ConvertRecentDataIntoReturnData(recentData);
+			Object.keys(recentData).forEach((key) => {
+				recentData[key] = 0;
+			})
 
 			console.log(DB_FILE_NAME + ' loaded successfully.');
-			callback(returnData);
+			callback(recentData);
 		});
 
 		function CreateNewCsv() {
@@ -46,21 +48,6 @@ module.exports = {
 				csvData.push([]);
 			});
 			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
-		}
-
-		function ConvertRecentDataIntoReturnData(recentData) {
-			var recentValues = [];
-			Object.keys(recentData).forEach((key) => {
-				recentValues.push(recentData[key]);
-			});
-			var returnData = [];
-			for (var i = 1; i < recentValues.length; i++) {
-				if (recentValues[i] == undefined)
-					returnData[i] = 0;
-				else
-					returnData[i] = recentValues[i];
-			}
-			return returnData;
 		}
 	},
 	
