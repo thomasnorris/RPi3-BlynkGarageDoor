@@ -13,6 +13,7 @@ const CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME + CSV_FILE_EXTENSION;
 
 var _data;
 var _headers;
+var _mapping;
 
 module.exports = {
 	LoadDatabase: function(mapping, callback) {
@@ -34,6 +35,7 @@ module.exports = {
 			}
 			_data = module.exports.ReadDatabase();
 			_headers = Object.keys(_data);
+			_mapping = mapping;
 
 			var recentData = module.exports.GetRecentlyLoggedData();
 
@@ -120,12 +122,12 @@ module.exports = {
 		writer.end();
 	},
 
-	CreateArchives: function(mapping) {
+	CreateArchives: function() {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
 		var date =  module.exports.GetCurrentDate().WithoutTime();
 		_fs.unlinkSync(DB_FILE_PATH);
 		_fs.renameSync(CSV_FILE_PATH, ARCHIVE_PATH + CSV_FILE_NAME + '-' + date + CSV_FILE_EXTENSION);
-		module.exports.LoadDatabase(mapping, () => {
+		module.exports.LoadDatabase(_mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
 			module.exports.WriteToCsv();
 		});

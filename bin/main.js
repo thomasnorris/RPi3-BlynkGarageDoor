@@ -56,7 +56,7 @@ function StartSchedules() {
     	_dbo.WriteToCsv();
 	});
 	_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
-		_dbo.CreateArchives(_mapping);
+		_dbo.CreateArchives();
 	});
 }
 
