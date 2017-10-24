@@ -32,7 +32,7 @@ module.exports = {
 			_headers = Object.keys(_data);
 
 			var recentData = module.exports.GetRecentlyLoggedData();
-			
+
 			Object.keys(recentData).forEach((key) => {
 				if (recentData[key] == undefined)
 					recentData[key] = 0;
@@ -69,11 +69,9 @@ module.exports = {
 
 	AddToDatabase: function(newData) {
 		_data[_headers[0]].push(GetCurrentDate());
-		var keys = Object.keys(newData).filter((keys) => {
-			return keys != 'Date';
-		});
-		for (var i = 0; i < keys.length; i++) {
-			_data[_headers[i + 1]].push(newData[keys[i]]);
+		var keys = Object.keys(newData);
+		for (var i = 1; i < keys.length; i++) {
+			_data[_headers[i]].push(newData[keys[i]]);
 		}
 		module.exports.WriteToFiles();
 		_data = module.exports.ReadDatabase();
