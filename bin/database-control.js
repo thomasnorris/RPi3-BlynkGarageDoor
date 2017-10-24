@@ -16,4 +16,5 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	_newData = recentData;
 	console.log(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 	_dbo.AddToDatabase(_newData);
+	_dbo.WriteToCsv();
 });
