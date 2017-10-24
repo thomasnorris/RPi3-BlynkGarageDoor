@@ -29,7 +29,6 @@ _gpioArr.push(_g4); // -no input gpio
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
 const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
-const CRON_DATABASE_WRITE_SCHEDULE = '*/10 * * * *';
 const CRON_ARCHIVE_SCHEDULE = '0 0 * */1 *';
 
 var _mapping = {
@@ -55,9 +54,6 @@ _blynk.on('connect', () => {
 function StartSchedules() {
 	_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
     	_dbo.WriteToCsv();
-	});
-	_schedule.scheduleJob(CRON_DATABASE_WRITE_SCHEDULE, () => {
-		_dbo.AddToDatabase(_newData);
 	});
 	_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
 		_dbo.CreateArchives(_mapping);
@@ -88,6 +84,7 @@ function StartWellRehargeMonitoring() {
 				++i;
 				if (i == RECHARGE_TIME_MINUTES + 1) {
 					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+					_dbo.AddToDatabase(_newData);
 					clearInterval(interval);
 				}
 				else
