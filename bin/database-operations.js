@@ -16,9 +16,9 @@ var _headers;
 
 module.exports = {
 	LoadDatabase: function(mapping, callback) {
-		_fs.exists(DB_FILE_PATH, (exists) => {
-			if (!exists) {
-				console.log('Database does not exist, creating ' + DB_FILE_NAME + ' and ' + CSV_FILE_NAME + '.');
+		_fs.stat(DB_FILE_PATH, (err, stats) => {
+			if (!stats) {
+				console.log('Database does not exist, creating..');
 				_fs.openSync(DB_FILE_PATH, 'w');
 				_fs.openSync(CSV_FILE_PATH, 'w');
 
@@ -30,7 +30,7 @@ module.exports = {
 				CreateNewCsv();
 				module.exports.WriteToDatabase();
 				module.exports.WriteToCsv();
-				console.log('Files created successfully.');
+				console.log('Created successfully.');
 			}
 			_data = module.exports.ReadDatabase();
 			_headers = Object.keys(_data);
@@ -42,7 +42,7 @@ module.exports = {
 					recentData[key] = 0;
 			})
 
-			console.log(DB_FILE_NAME + ' loaded successfully.');
+			console.log('Loaded successfully.');
 			callback(recentData);
 		});
 
