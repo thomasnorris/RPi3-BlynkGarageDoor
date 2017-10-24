@@ -89,7 +89,7 @@ module.exports = {
 			if (mm < 10)
 				mm = '0' + mm;
 
-			return mm + '/' + dd + '/' + today.getFullYear();
+			return mm + '/' + dd + '/' + today.getFullYear() + ' - ' + today.getHours() + ':' + today.getMinutes();
 		}
 	},
 

@@ -57,7 +57,7 @@ function StartSchedules() {
 	});
 	_schedule.scheduleJob(CRON_DATABASE_WRITE_SCHEDULE, () => {
 		_dbo.AddToDatabase(_newData);
-	})
+	});
 }
 
 function InitializeValues() {
