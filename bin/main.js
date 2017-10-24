@@ -28,8 +28,8 @@ _gpioArr.push(_g4); // -no input gpio
 
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
-const CRON_LOG_SCHEDULE = '0 0 7,19 * * *';
-const CRON_REBOOT_SCHEDULE = '0 0 24 * * *';
+const CRON_LOG_SCHEDULE = '00 07,19 * * *';
+const CRON_REBOOT_SCHEDULE = '00 00 * * *';
 
 var _mapping = {
 	0: 'Date',
