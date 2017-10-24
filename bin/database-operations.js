@@ -3,10 +3,13 @@ var _fs = require('fs'),
 	_csvWriter = require('csv-write-stream');
 
 const DATA_PATH = __dirname + '/data/';
-const DB_FILE_NAME = 'Data.json';
-const DB_FILE_PATH = DATA_PATH + DB_FILE_NAME;
-const CSV_FILE_NAME = 'Data.csv';
-const CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME;
+const ARCHIVE_PATH = DATA_PATH + '/archive/';
+const DB_FILE_NAME = 'Data';
+const DB_FILE_EXTENSION = '.json';
+const DB_FILE_PATH = DATA_PATH + DB_FILE_NAME + DB_FILE_EXTENSION;
+const CSV_FILE_NAME = 'Data';
+const CSV_FILE_EXTENSION = '.csv'
+const CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME + CSV_FILE_EXTENSION;
 
 var _data;
 var _headers;
@@ -72,26 +75,39 @@ module.exports = {
 	},
 
 	AddToDatabase: function(newData) {
-		_data[_headers[0]].push(GetCurrentDate());
+		_data[_headers[0]].push(module.exports.GetCurrentDate().WithTime());
 		var keys = Object.keys(newData);
 		for (var i = 1; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
 		}
 		module.exports.WriteToDatabase();
 		_data = module.exports.ReadDatabase();
-
-		function GetCurrentDate() {
-			var today = new Date();
-			var dd = today.getDate();
-			var mm = today.getMonth() + 1;
-			if (dd < 10)
-				dd = '0' + dd;
-			if (mm < 10)
-				mm = '0' + mm;
-
-			return mm + '/' + dd + '/' + today.getFullYear() + ' - ' + today.getHours() + ':' + today.getMinutes();
-		}
 	},
+
+	GetCurrentDate: function() {
+		var today = new Date();
+		var dd = today.getDate();
+		var mm = today.getMonth() + 1;
+		if (dd < 10)
+			dd = '0' + dd;
+		if (mm < 10)
+			mm = '0' + mm;
+
+		var date = mm + '-' + dd + '-' + today.getFullYear();
+
+		function WithTime() {
+			return  date + '-' + today.getHours() + ':' + today.getMinutes();
+		}
+
+		function WithoutTime() {
+			return date;
+		}
+
+		return {
+			WithTime: WithTime,
+			WithoutTime: WithoutTime
+		}
+	}, 
 
 	ReadDatabase: function() {
 		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
@@ -102,5 +118,16 @@ module.exports = {
 		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
 		writer.write(csvData);
 		writer.end();
+	},
+
+	PurgeDatabase: function(mapping) {
+		var dataToKeep = module.exports.GetRecentlyLoggedData();
+		var date =  module.exports.GetCurrentDate().WithoutTime();
+		_fs.renameSync(DB_FILE_PATH, ARCHIVE_PATH + DB_FILE_NAME + '-' + date + DB_FILE_EXTENSION);
+		_fs.renameSync(CSV_FILE_PATH, ARCHIVE_PATH + CSV_FILE_NAME + '-' + date + CSV_FILE_EXTENSION);
+		module.exports.LoadDatabase(mapping, () => {
+			module.exports.AddToDatabase(dataToKeep);
+			module.exports.WriteToCsv();
+		});
 	}
 }

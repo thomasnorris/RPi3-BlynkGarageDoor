@@ -29,7 +29,7 @@ _gpioArr.push(_g4); // -no input gpio
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
 const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
-const CRON_DATABASE_WRITE_SCHEDULE = '0 */2 * * *';
+const CRON_DATABASE_WRITE_SCHEDULE = '5 * * * *';
 
 var _mapping = {
 	DATE: 'Date',

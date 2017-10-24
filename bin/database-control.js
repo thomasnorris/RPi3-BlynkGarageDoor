@@ -14,7 +14,11 @@ var _newData = [];
 
 _dbo.LoadDatabase(_mapping, (recentData) => {
 	_newData = recentData;
-	console.log(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
-	_dbo.AddToDatabase(_newData);
-	_dbo.WriteToCsv();
+	//setInterval(() => {
+	//	console.log(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+	//	_dbo.AddToDatabase(_newData);
+	//	_dbo.WriteToCsv();
+	//}, 100);
+	
+	_dbo.PurgeDatabase(_mapping);
 });
