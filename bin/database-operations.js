@@ -123,7 +123,7 @@ module.exports = {
 	CreateArchives: function(mapping) {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
 		var date =  module.exports.GetCurrentDate().WithoutTime();
-		_fs.renameSync(DB_FILE_PATH, ARCHIVE_PATH + DB_FILE_NAME + '-' + date + DB_FILE_EXTENSION);
+		_fs.unlinkSync(DB_FILE_PATH);
 		_fs.renameSync(CSV_FILE_PATH, ARCHIVE_PATH + CSV_FILE_NAME + '-' + date + CSV_FILE_EXTENSION);
 		module.exports.LoadDatabase(mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
