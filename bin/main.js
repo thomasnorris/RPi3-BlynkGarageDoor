@@ -1,64 +1,100 @@
 
 var	blynkLibrary = require('blynk-library'),
 	blynkAuth = require('./blynk-auth').getAuth(),
-	_blynk = new blynkLibrary.Blynk(blynkAuth),
-	_gpio = require('onoff').Gpio;
+	_blynk = new blynkLibrary.Blynk(blynkAuth);
+	_gpio = require('onoff').Gpio,
+	_schedule = require('node-schedule'),
+	_dbo = require('./database-operations');
 
-var _vPinList = [],
-	_v0Pin = new _blynk.VirtualPin(0), // -Columbia valve
-	_v1Pin = new _blynk.VirtualPin(1), // -Override
-	_v2Pin = new _blynk.VirtualPin(2), // -Well valve
-	_v3Pin = new _blynk.VirtualPin(3), // -Recharge level
-	_v4Pin = new _blynk.VirtualPin(4); // -Recharge counter
-_vPinList.push(_v0Pin, _v1Pin, _v2Pin, _v3Pin, _v4Pin)
+var	_vPinArr = [],
+	_manualOverride = new _blynk.VirtualPin(0), 
+	_manualColumbia = new _blynk.VirtualPin(1), 
+	_manualWell = new _blynk.VirtualPin(2);
+	_wellRechargeLevel = new _blynk.VirtualPin(3), 
+	_wellRechargeCounter = new _blynk.VirtualPin(4),
+	_columbiaTimer = new _blynk.VirtualPin(5),
+	_usingColumbiaLed = new _blynk.WidgetLED(6),
+	_wellTimer = new _blynk.VirtualPin(7),
+	_usingWellLed = new _blynk.WidgetLED(8),
+	_cfhCounter = new _blynk.VirtualPin(9),
+	_cfhLed = new _blynk.WidgetLED(10),
+	_boilerCallForGasLed = new _blynk.WidgetLED(11); 
+_vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel);
 
-var _gpioList = [],
+var _gpioArr = [],
+	_wellRechargeInput = new _gpio(26, 'in', 'both'),
 	_g4 = new _gpio(4, 'high');
-_gpioList.push(_g4);
+_gpioArr.push(_g4); // -no input gpio
 
-const RECHARGE_TIME_MINUTES = 90;
+const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
+const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
+const CRON_DATABASE_WRITE_SCHEDULE = '0 */2 * * *';
 
-var _rechargeCounter = 1;
+var _mapping = {
+	DATE: 'Date',
+	WELL_RECHARGE_COUNTER: 'Recharge Counter',
+	COLUMBIA_TIMER: 'Columbia Timer',
+	WELL_TIMER: 'Well Timer',
+	CFH_COUNTER : 'Call For Heat Counter'
+}
 
-// -Main call
+var _newData = [];
+
 _blynk.on('connect', () => {
-	initialize();
-	blynkTriggerGpio(_v0Pin, _g4);
-	countUp(_v2Pin, _v3Pin, _v4Pin);
+	_dbo.LoadDatabase(_mapping, (recentData) => {
+		_newData = recentData;
+		InitializeValues();
+		BlynkTriggerGpio(_manualColumbia, _g4);
+		StartWellRehargeMonitoring();
+		StartSchedules();
+	});
 });
 
-function initialize() {
-	_vPinList.forEach((vPin) => {
-		vPin.write(0);
+function StartSchedules() {
+	_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
+    	_dbo.WriteToCsv();
 	});
-	_gpioList.forEach((gpio) => {
-		gpio.writeSync(1);
+	_schedule.scheduleJob(CRON_DATABASE_WRITE_SCHEDULE, () => {
+		_dbo.AddToDatabase(_newData);
 	});
 }
 
-function countUp(trigger, display, counter) {
+function InitializeValues() {
+	_wellRechargeCounter.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
+	_columbiaTimer.write(_newData[_mapping.COLUMBIA_TIMER]);
+	_wellTimer.write(_newData[_mapping.WELL_TIMER]);
+	_cfhCounter.write(_newData[_mapping.CFH_COUNTER]);
+
+	_gpioArr.forEach((gpio) => {
+		gpio.writeSync(1);
+	});
+	_vPinArr.forEach((vPin) => {
+		vPin.write(0);
+	});
+}
+
+function StartWellRehargeMonitoring() {
 	var interval;
-	trigger.on('write', (value) => {
+	_wellRechargeInput.watch((err, value) => {
+		clearInterval(interval);
 		if (value.toString() == 1) {
 			var i = 0;
 			interval = setInterval(() => {
-				i++;
+				++i;
 				if (i == RECHARGE_TIME_MINUTES + 1) {
-					counter.write(_rechargeCounter++);
+					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					clearInterval(interval);
 				}
 				else
-					display.write(i);
+					_wellRechargeLevel.write(i);
 			}, RECHARGE_COUNTUP_MILI);
-		} else {
-			display.write(0);
-			clearInterval(interval);
-		}
+		} else 
+			_wellRechargeLevel.write(0);
 	});
 }
 
-function blynkTriggerGpio(trigger, gpio) {
+function BlynkTriggerGpio(trigger, gpio) {
 	trigger.on('write', (value) => {
 		value.toString() == 1 ? gpio.writeSync(0) : gpio.writeSync(1);
 	});

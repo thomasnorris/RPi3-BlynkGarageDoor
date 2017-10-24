@@ -25,17 +25,22 @@ module.exports = {
 				});
 
 				CreateNewCsv();
-				module.exports.WriteToFiles();
+				module.exports.WriteToDatabase();
+				module.exports.WriteToCsv();
 				console.log('Files created successfully.');
 			}
 			_data = module.exports.ReadDatabase();
 			_headers = Object.keys(_data);
 
 			var recentData = module.exports.GetRecentlyLoggedData();
-			var returnData = ConvertRecentDataIntoReturnData(recentData);
+
+			Object.keys(recentData).forEach((key) => {
+				if (recentData[key] == undefined)
+					recentData[key] = 0;
+			})
 
 			console.log(DB_FILE_NAME + ' loaded successfully.');
-			callback(returnData);
+			callback(recentData);
 		});
 
 		function CreateNewCsv() {
@@ -47,21 +52,6 @@ module.exports = {
 			});
 			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
 		}
-
-		function ConvertRecentDataIntoReturnData(recentData) {
-			var recentValues = [];
-			Object.keys(recentData).forEach((key) => {
-				recentValues.push(recentData[key]);
-			});
-			var returnData = [];
-			for (var i = 1; i < recentValues.length; i++) {
-				if (recentValues[i] == undefined)
-					returnData[i - 1] = 0;
-				else
-					returnData[i - 1] = recentValues[i];
-			}
-			return returnData;
-		}
 	},
 	
 	GetRecentlyLoggedData: function() {
@@ -72,18 +62,22 @@ module.exports = {
 		return recentData;
 	},
 
-	WriteToFiles: function() {
-		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
+	WriteToCsv: function() {
 		var csvData = module.exports.GetRecentlyLoggedData();
 		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
 	},
 
+	WriteToDatabase: function() {
+		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
+	},
+
 	AddToDatabase: function(newData) {
 		_data[_headers[0]].push(GetCurrentDate());
-		for (var i = 0; i < newData.length; i++) {
-			_data[_headers[i + 1]].push(newData[i]);
+		var keys = Object.keys(newData);
+		for (var i = 1; i < keys.length; i++) {
+			_data[_headers[i]].push(newData[keys[i]]);
 		}
-		module.exports.WriteToFiles();
+		module.exports.WriteToDatabase();
 		_data = module.exports.ReadDatabase();
 
 		function GetCurrentDate() {
@@ -95,7 +89,7 @@ module.exports = {
 			if (mm < 10)
 				mm = '0' + mm;
 
-			return mm + '/' + dd + '/' + today.getFullYear();
+			return mm + '/' + dd + '/' + today.getFullYear() + ' - ' + today.getHours() + ':' + today.getMinutes();
 		}
 	},
 
