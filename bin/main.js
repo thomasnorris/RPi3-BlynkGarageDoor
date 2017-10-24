@@ -79,16 +79,16 @@ function StartWellRehargeMonitoring() {
 	_wellRechargeInput.watch((err, value) => {
 		clearInterval(interval);
 		if (value.toString() == 1) {
-			var i = 0;
+			var i = 1;
 			interval = setInterval(() => {
-				++i;
-				if (i == RECHARGE_TIME_MINUTES + 1) {
+				_wellRechargeLevel.write(i);
+				if (i == RECHARGE_TIME_MINUTES) {
 					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					_dbo.AddToDatabase(_newData);
 					clearInterval(interval);
 				}
-				else
-					_wellRechargeLevel.write(i);
+				else 
+					i++;
 			}, RECHARGE_COUNTUP_MILI);
 		} else 
 			_wellRechargeLevel.write(0);
