@@ -31,18 +31,12 @@ const RECHARGE_COUNTUP_MILI = 1000;
 const CRON_LOG_SCHEDULE = '0 7,19 * * *';
 const CRON_REBOOT_SCHEDULE = '0 0 * * *';
 
-const DATE = 'Date';
-const WELL_RECHARGE_COUNTER = 'Recharsdfsdfe Counter';
-const COLUMBIA_TIMER = 'Columbia Timer';
-const WELL_TIMER = 'Well Timer';
-const CFH_COUNTER = 'Call For Heat Counter';
-
 var _mapping = {
-	0: DATE,
-	1: WELL_RECHARGE_COUNTER,
-	2: COLUMBIA_TIMER,
-	3: WELL_TIMER,
-	4: CFH_COUNTER
+	DATE: 'Date',
+	WELL_RECHARGE_COUNTER: 'Recharge Counter',
+	COLUMBIA_TIMER: 'Columbia Timer',
+	WELL_TIMER: 'Well Timer',
+	CFH_COUNTER : 'Call For Heat Counter'
 }
 
 var _newData = [];
@@ -67,11 +61,11 @@ function StartSchedules() {
 }
 
 function InitializeValues() {
-	_wellRechargeCounter.write(_newData[WELL_RECHARGE_COUNTER]);
-	_columbiaTimer.write(_newData[COLUMBIA_TIMER]);
-	_wellTimer.write(_newData[WELL_TIMER]);
-	_cfhCounter.write(_newData[CFH_COUNTER]);
-	
+	_wellRechargeCounter.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
+	_columbiaTimer.write(_newData[_mapping.COLUMBIA_TIMER]);
+	_wellTimer.write(_newData[_mapping.WELL_TIMER]);
+	_cfhCounter.write(_newData[_mapping.CFH_COUNTER]);
+
 	_gpioArr.forEach((gpio) => {
 		gpio.writeSync(1);
 	});
@@ -89,7 +83,7 @@ function StartWellRehargeMonitoring() {
 			interval = setInterval(() => {
 				++i;
 				if (i == RECHARGE_TIME_MINUTES + 1) {
-					_wellRechargeCounter.write(++_newData[1]);
+					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					clearInterval(interval);
 				}
 				else
