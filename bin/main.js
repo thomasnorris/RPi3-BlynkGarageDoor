@@ -28,8 +28,8 @@ _gpioArr.push(_g4); // -no input gpio
 
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
-const CRON_LOG_SCHEDULE = '00 07,19 * * *';
-const CRON_REBOOT_SCHEDULE = '00 00 * * *';
+const CRON_LOG_SCHEDULE = '0 7,19 * * *';
+const CRON_REBOOT_SCHEDULE = '0 0 * * *';
 
 var _mapping = {
 	0: 'Date',
@@ -77,11 +77,11 @@ function InitializeValues() {
 function StartWellRehargeMonitoring() {
 	var interval;
 	_wellRechargeInput.watch((err, value) => {
-		if (err) throw err;
+		clearInterval(interval);
 		if (value.toString() == 1) {
 			var i = 0;
 			interval = setInterval(() => {
-				i++;
+				++i;
 				if (i == RECHARGE_TIME_MINUTES + 1) {
 					_wellRechargeCounter.write(++_newData[1]);
 					clearInterval(interval);
@@ -89,10 +89,8 @@ function StartWellRehargeMonitoring() {
 				else
 					_wellRechargeLevel.write(i);
 			}, RECHARGE_COUNTUP_MILI);
-		} else {
+		} else 
 			_wellRechargeLevel.write(0);
-			clearInterval(interval);
-		}
 	});
 }
 
