@@ -19,7 +19,7 @@ var	_vPinArr = [],
 	_callForHeatCounter = new _blynk.VirtualPin(9),
 	_callForHeatLed = new _blynk.WidgetLED(10),
 	_boilerCallForGasLed = new _blynk.WidgetLED(11); 
-_vPinArr.push(_manualOverride, _manualWell, _manualColumbia);
+_vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel);
 
 var _gpioArr = [],
 	_wellRechargeInput = new _gpio(26, 'in', 'both'),
