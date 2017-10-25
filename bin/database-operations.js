@@ -5,24 +5,31 @@ var _fs = require('fs'),
 
 const DATA_PATH = __dirname + '/data/';
 const ARCHIVE_PATH = DATA_PATH + '/archive/';
-const DB_FILE_NAME = 'Data';
 const DB_FILE_EXTENSION = '.json';
-const DB_FILE_PATH = DATA_PATH + DB_FILE_NAME + DB_FILE_EXTENSION;
-const CSV_FILE_NAME = 'Data';
 const CSV_FILE_EXTENSION = '.csv'
-const CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME + CSV_FILE_EXTENSION;
+
+var _dbFileName = 'Data';
+var _dbPathWithName;
+var _csvFileName = 'Data';
+var _csvPathWithName;
 
 var _data;
 var _headers;
 var _mapping;
 
 module.exports = {
-	LoadDatabase: function(mapping, callback) {
-		_fs.stat(DB_FILE_PATH, (err, stats) => {
+	LoadDatabase: function(mapping, callback, isTest) {
+		if (isTest) {
+			_dbFileName += '-Test';
+			_csvFileName += '-Test';
+		}
+		_dbPathWithName = DATA_PATH + _dbFileName + DB_FILE_EXTENSION;
+		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
+
+		_fs.stat(_dbPathWithName, (err, stats) => {
 			if (!stats) {
-				console.log('Database does not exist, creating..');
-				_fs.openSync(DB_FILE_PATH, 'w');
-				_fs.openSync(CSV_FILE_PATH, 'w');
+				_fs.openSync(_dbPathWithName, 'w');
+				_fs.openSync(_csvPathWithName, 'w');
 
 				_data = {};
 				Object.keys(mapping).forEach((key) => {
@@ -32,7 +39,6 @@ module.exports = {
 				CreateNewCsv();
 				module.exports.WriteToDatabase();
 				module.exports.WriteToCsv();
-				console.log('Created successfully.');
 			}
 			_data = module.exports.ReadDatabase();
 			_headers = Object.keys(_data);
@@ -45,7 +51,6 @@ module.exports = {
 					recentData[key] = 0;
 			})
 
-			console.log('Loaded successfully.');
 			callback(recentData);
 		});
 
@@ -56,7 +61,7 @@ module.exports = {
 				tempHeaders.push(key);
 				csvData.push([]);
 			});
-			module.exports.CsvWriter(csvData, CSV_FILE_PATH, { headers: tempHeaders });
+			module.exports.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
 		}
 	},
 	
@@ -70,11 +75,17 @@ module.exports = {
 
 	WriteToCsv: function() {
 		var csvData = module.exports.GetRecentlyLoggedData();
-		module.exports.CsvWriter(csvData, CSV_FILE_PATH, { sendHeaders: false }, { flags: 'a' });
+		var keys = Object.keys(csvData);
+		for (var i = 2; i < keys.length - 1; i++) {
+			var num = csvData[keys[i]]
+			if (num != undefined)
+				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
+		}
+		module.exports.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},
 
 	WriteToDatabase: function() {
-		_fs.writeFileSync(DB_FILE_PATH, JSON.stringify(_data, null, '\t'));
+		_fs.writeFileSync(_dbPathWithName, JSON.stringify(_data, null, '\t'));
 	},
 
 	AddToDatabase: function(newData) {
@@ -88,7 +99,7 @@ module.exports = {
 	},
 
 	ReadDatabase: function() {
-		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
+		return JSON.parse(_fs.readFileSync(_dbPathWithName))
 	},
 	
 	CsvWriter: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
@@ -100,12 +111,21 @@ module.exports = {
 
 	CreateArchives: function() {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
-		var date = _dto.GetCurrentDate().WithoutTime();
-		_fs.unlinkSync(DB_FILE_PATH);
-		_fs.renameSync(CSV_FILE_PATH, ARCHIVE_PATH + CSV_FILE_NAME + '-' + date + CSV_FILE_EXTENSION);
+		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION)
+
+		_fs.renameSync(_dbPathWithName, dbArchivePathWithName);
+		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
+
 		module.exports.LoadDatabase(_mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
 			module.exports.WriteToCsv();
 		});
-	}
+		
+		_fs.unlinkSync(dbArchivePathWithName);
+
+		function FormatArchivePath(fileName, fileExtension) {
+			var date = _dto.GetCurrentDate().WithoutTime();
+			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
+		}
+	},
 }
