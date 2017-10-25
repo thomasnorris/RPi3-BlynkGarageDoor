@@ -4,7 +4,8 @@ var	blynkLibrary = require('blynk-library'),
 	_blynk = new blynkLibrary.Blynk(blynkAuth);
 	_gpio = require('onoff').Gpio,
 	_schedule = require('node-schedule'),
-	_dbo = require('./database-operations');
+	_dbo = require('./database-operations'),
+	_dto = require('./date-time-operations');
 
 var	_vPinArr = [],
 	_manualOverride = new _blynk.VirtualPin(0), 
@@ -61,9 +62,9 @@ function StartSchedules() {
 }
 
 function InitializeValues() {
-	_wellRechargeCounter.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
-	_columbiaTimer.write(_newData[_mapping.COLUMBIA_TIMER]);
-	_wellTimer.write(_newData[_mapping.WELL_TIMER]);
+	_wellRechargeCounter.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_RECHARGE_COUNTER]));
+	_columbiaTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
+	_wellTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 	_cfhCounter.write(_newData[_mapping.CFH_COUNTER]);
 
 	_gpioArr.forEach((gpio) => {
@@ -83,7 +84,7 @@ function StartWellRehargeMonitoring() {
 			interval = setInterval(() => {
 				_wellRechargeLevel.write(i);
 				if (i == RECHARGE_TIME_MINUTES) {
-					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+					_wellRechargeCounter.write(_dto.MinutesAsHoursMins(++_newData[_mapping.WELL_RECHARGE_COUNTER]));
 					_dbo.AddToDatabase(_newData);
 					clearInterval(interval);
 				} else 
