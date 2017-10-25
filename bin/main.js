@@ -1,7 +1,7 @@
 
 var	blynkLibrary = require('blynk-library'),
 	blynkAuth = require('./blynk-auth').getAuth(),
-	_blynk = new blynkLibrary.Blynk(blynkAuth);
+	_blynk = new blynkLibrary.Blynk(blynkAuth),
 	_gpio = require('onoff').Gpio,
 	_schedule = require('node-schedule'),
 	_dbo = require('./database-operations'),
@@ -10,7 +10,7 @@ var	blynkLibrary = require('blynk-library'),
 var	_vPinArr = [],
 	_manualOverride = new _blynk.VirtualPin(0), 
 	_manualColumbia = new _blynk.VirtualPin(1), 
-	_manualWell = new _blynk.VirtualPin(2);
+	_manualWell = new _blynk.VirtualPin(2),
 	_wellRechargeLevel = new _blynk.VirtualPin(3), 
 	_wellRechargeCounter = new _blynk.VirtualPin(4),
 	_columbiaTimer = new _blynk.VirtualPin(5),
@@ -19,7 +19,7 @@ var	_vPinArr = [],
 	_usingWellLed = new _blynk.WidgetLED(8),
 	_cfhCounter = new _blynk.VirtualPin(9),
 	_cfhLed = new _blynk.WidgetLED(10),
-	_boilerCallForGasLed = new _blynk.WidgetLED(11); 
+	_boilerCallForGasLed = new _blynk.WidgetLED(11);
 _vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel);
 
 var _gpioArr = [],

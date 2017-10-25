@@ -6,7 +6,7 @@ var _fs = require('fs'),
 const DATA_PATH = __dirname + '/data/';
 const ARCHIVE_PATH = DATA_PATH + '/archive/';
 const DB_FILE_EXTENSION = '.json';
-const CSV_FILE_EXTENSION = '.csv'
+const CSV_FILE_EXTENSION = '.csv';
 
 var _dbFileName = 'Data';
 var _dbPathWithName;
@@ -53,7 +53,7 @@ module.exports = {
 				// --Will be undefined if from a new CSV and 0 is more friendly
 				if (recentData[key] == undefined)
 					recentData[key] = 0;
-			})
+			});
 
 			callback(recentData);
 		});
@@ -83,7 +83,7 @@ module.exports = {
 		var keys = Object.keys(csvData);
 		// --Start at 2 and skip the last one because they do not need to be formatted
 		for (var i = 2; i < keys.length - 1; i++) {
-			var num = csvData[keys[i]]
+			var num = csvData[keys[i]];
 			if (num != undefined)
 				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
 		}
@@ -106,7 +106,7 @@ module.exports = {
 	},
 
 	ReadDatabase: function() {
-		return JSON.parse(_fs.readFileSync(_dbPathWithName))
+		return JSON.parse(_fs.readFileSync(_dbPathWithName));
 	},
 	
 	CsvWriter: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
@@ -118,7 +118,7 @@ module.exports = {
 
 	CreateArchives: function() {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
-		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION)
+		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION);
 
 		_fs.renameSync(_dbPathWithName, dbArchivePathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));

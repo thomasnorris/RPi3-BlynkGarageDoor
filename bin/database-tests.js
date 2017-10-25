@@ -25,7 +25,7 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 				console.log('Archive completed, exiting...');
 			}
 			else if (input == 'e') 
-				console.log('Exiting.')
+				console.log('Exiting.');
 			_rl.close();
 		});
 	});
