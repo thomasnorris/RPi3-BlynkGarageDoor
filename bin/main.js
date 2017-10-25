@@ -8,6 +8,7 @@ var	blynkLibrary = require('blynk-library'),
 	_dto = require('./date-time-operations');
 
 var	_vPinArr = [],
+	_vLedArr = [],
 	_manualOverride = new _blynk.VirtualPin(0), 
 	_manualColumbia = new _blynk.VirtualPin(1), 
 	_manualWell = new _blynk.VirtualPin(2),
@@ -19,13 +20,14 @@ var	_vPinArr = [],
 	_usingWellLed = new _blynk.WidgetLED(8),
 	_cfhCounter = new _blynk.VirtualPin(9),
 	_cfhLed = new _blynk.WidgetLED(10),
-	_boilerCallForGasLed = new _blynk.WidgetLED(11);
-_vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel);
+	_boilerCfgLed = new _blynk.WidgetLED(11);
+_vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel); // --No vPins from _mapping
+_vLedArr.push(_usingColumbiaLed, _usingWellLed, _cfhLed, _boilerCfgLed);
 
 var _gpioArr = [],
 	_wellRechargeInput = new _gpio(26, 'in', 'both'),
 	_g4 = new _gpio(4, 'high');
-_gpioArr.push(_g4); // -no input gpio
+_gpioArr.push(_g4); // --No input gpio
 
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
@@ -73,6 +75,9 @@ function InitializeValues() {
 	_vPinArr.forEach((vPin) => {
 		vPin.write(0);
 	});
+	_vLedArr.forEach((vLed) => {
+		vLed.turnOff();
+	})
 }
 
 function StartWellRehargeMonitoring() {
