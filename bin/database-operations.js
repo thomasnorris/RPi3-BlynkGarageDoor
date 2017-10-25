@@ -17,6 +17,9 @@ var _data;
 var _headers;
 var _mapping;
 
+// --Database == .json file
+// --CSV == .csv file
+
 module.exports = {
 	LoadDatabase: function(mapping, callback, isTest) {
 		if (isTest) {
@@ -47,6 +50,7 @@ module.exports = {
 			var recentData = module.exports.GetRecentlyLoggedData();
 
 			Object.keys(recentData).forEach((key) => {
+				// --Will be undefined if from a new CSV and 0 is more friendly
 				if (recentData[key] == undefined)
 					recentData[key] = 0;
 			})
@@ -59,6 +63,7 @@ module.exports = {
 			var csvData = [];
 			Object.keys(_data).forEach((key) => {
 				tempHeaders.push(key);
+				// --Pushing empty array because something has to be written on creation
 				csvData.push([]);
 			});
 			module.exports.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
@@ -76,7 +81,7 @@ module.exports = {
 	WriteToCsv: function() {
 		var csvData = module.exports.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
-		// -Start at 2 and skip the last one because they do not need to be formatted
+		// --Start at 2 and skip the last one because they do not need to be formatted
 		for (var i = 2; i < keys.length - 1; i++) {
 			var num = csvData[keys[i]]
 			if (num != undefined)
@@ -92,7 +97,7 @@ module.exports = {
 	AddToDatabase: function(newData) {
 		_data[_headers[0]].push(_dto.GetCurrentDate().WithTime());
 		var keys = Object.keys(newData);
-		// -Start at 1 because the 0th index is set above
+		// --Start at 1 because the 0th index is set above
 		for (var i = 1; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
 		}
