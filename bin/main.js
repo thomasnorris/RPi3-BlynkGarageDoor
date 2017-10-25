@@ -86,8 +86,7 @@ function StartWellRehargeMonitoring() {
 					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					_dbo.AddToDatabase(_newData);
 					clearInterval(interval);
-				}
-				else 
+				} else 
 					i++;
 			}, RECHARGE_COUNTUP_MILI);
 		} else 

@@ -22,14 +22,12 @@ module.exports = {
 			if (hour > 12) {
 				hour -= 12;
 				postfix = 'PM';
-			}
-			else if (hour == 12) 
+			} else if (hour == 12) 
 				postfix = 'PM';
 			else if (hour == 0) {
 			  	hour = 12;
 			  	postfix = 'AM';
-			}
-			else
+			} else
 			  postfix = 'AM';
 
 			return  date + ' - ' + hour + ':' + min + ' ' + postfix;

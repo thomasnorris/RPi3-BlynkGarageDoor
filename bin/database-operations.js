@@ -28,7 +28,6 @@ module.exports = {
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
 			if (!stats) {
-				console.log('Database does not exist, creating..');
 				_fs.openSync(_dbPathWithName, 'w');
 				_fs.openSync(_csvPathWithName, 'w');
 
@@ -40,7 +39,6 @@ module.exports = {
 				CreateNewCsv();
 				module.exports.WriteToDatabase();
 				module.exports.WriteToCsv();
-				console.log('Created successfully.');
 			}
 			_data = module.exports.ReadDatabase();
 			_headers = Object.keys(_data);
@@ -53,7 +51,6 @@ module.exports = {
 					recentData[key] = 0;
 			})
 
-			console.log('Loaded successfully.');
 			callback(recentData);
 		});
 
@@ -109,7 +106,7 @@ module.exports = {
 	CreateArchives: function() {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
 		var date = _dto.GetCurrentDate().WithoutTime();
-		_fs.unlinkSync(_dbPathWithName);
+		_fs.renameSync(_dbPathWithName, ARCHIVE_PATH + _dbFileName + '-' + date + DB_FILE_EXTENSION);
 		_fs.renameSync(_csvPathWithName, ARCHIVE_PATH + _csvFileName + '-' + date + CSV_FILE_EXTENSION);
 		module.exports.LoadDatabase(_mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
