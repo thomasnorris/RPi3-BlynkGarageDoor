@@ -111,12 +111,21 @@ module.exports = {
 
 	CreateArchives: function() {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
-		var date = _dto.GetCurrentDate().WithoutTime();
-		_fs.renameSync(_dbPathWithName, ARCHIVE_PATH + _dbFileName + '-' + date + DB_FILE_EXTENSION);
-		_fs.renameSync(_csvPathWithName, ARCHIVE_PATH + _csvFileName + '-' + date + CSV_FILE_EXTENSION);
+		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION)
+
+		_fs.renameSync(_dbPathWithName, dbArchivePathWithName);
+		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
+
 		module.exports.LoadDatabase(_mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
 			module.exports.WriteToCsv();
 		});
-	}
+		
+		_fs.unlinkSync(dbArchivePathWithName);
+
+		function FormatArchivePath(fileName, fileExtension) {
+			var date = _dto.GetCurrentDate().WithoutTime();
+			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
+		}
+	},
 }
