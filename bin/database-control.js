@@ -18,7 +18,7 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	//	console.log(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 	//	_dbo.AddToDatabase(_newData);
 	//	_dbo.WriteToCsv();
-	//}, 5);
+	//}, 10);
 	
 	_dbo.CreateArchives(_mapping);
 });

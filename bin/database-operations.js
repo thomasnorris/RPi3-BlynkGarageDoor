@@ -1,6 +1,7 @@
 
 var _fs = require('fs'),
-	_csvWriter = require('csv-write-stream');
+	_csvWriter = require('csv-write-stream'),
+	_dto = require('./date-time-operations');
 
 const DATA_PATH = __dirname + '/data/';
 const ARCHIVE_PATH = DATA_PATH + '/archive/';
@@ -77,7 +78,7 @@ module.exports = {
 	},
 
 	AddToDatabase: function(newData) {
-		_data[_headers[0]].push(module.exports.GetCurrentDate().WithTime());
+		_data[_headers[0]].push(_dto.GetCurrentDate().WithTime());
 		var keys = Object.keys(newData);
 		for (var i = 1; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
@@ -85,51 +86,6 @@ module.exports = {
 		module.exports.WriteToDatabase();
 		_data = module.exports.ReadDatabase();
 	},
-
-	GetCurrentDate: function() {
-		var today = new Date();
-		var day = today.getDate();
-		var month = today.getMonth() + 1;
-
-		if (day < 10)
-			day = '0' + day;
-		if (month < 10)
-			month = '0' + month;
-
-		var date = month + '-' + day + '-' + today.getFullYear();
-
-		function WithTime() {
-			var hour = today.getHours();
-			var min = today.getMinutes();
-			var postfix;
-
-			if (min < 10)
-				min = '0' + min;
-			if (hour > 12) {
-				hour = hour - 12;
-				postfix = 'PM';
-			}
-			else if (hour == 12) 
-				postfix = 'PM';
-			else if (hour == 0) {
-			  	hour = 12;
-			  	postfix = 'AM';
-			}
-			else
-			  postfix = 'AM';
-
-			return  date + ' - ' + hour + ':' + min + ' ' + postfix;
-		}
-
-		function WithoutTime() {
-			return date;
-		}
-
-		return {
-			WithTime: WithTime,
-			WithoutTime: WithoutTime
-		}
-	}, 
 
 	ReadDatabase: function() {
 		return JSON.parse(_fs.readFileSync(DB_FILE_PATH))
@@ -144,7 +100,7 @@ module.exports = {
 
 	CreateArchives: function() {
 		var dataToKeep = module.exports.GetRecentlyLoggedData();
-		var date =  module.exports.GetCurrentDate().WithoutTime();
+		var date = _dto.GetCurrentDate().WithoutTime();
 		_fs.unlinkSync(DB_FILE_PATH);
 		_fs.renameSync(CSV_FILE_PATH, ARCHIVE_PATH + CSV_FILE_NAME + '-' + date + CSV_FILE_EXTENSION);
 		module.exports.LoadDatabase(_mapping, () => {
