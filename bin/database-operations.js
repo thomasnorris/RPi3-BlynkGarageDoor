@@ -75,6 +75,12 @@ module.exports = {
 
 	WriteToCsv: function() {
 		var csvData = module.exports.GetRecentlyLoggedData();
+		var keys = Object.keys(csvData);
+		for (var i = 2; i < keys.length - 1; i++) {
+			var num = csvData[keys[i]]
+			if (num != undefined)
+				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMinutes(num);
+		}
 		module.exports.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},
 
