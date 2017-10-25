@@ -5,19 +5,26 @@ var _fs = require('fs'),
 
 const DATA_PATH = __dirname + '/data/';
 const ARCHIVE_PATH = DATA_PATH + '/archive/';
-const DB_FILE_NAME = 'Data';
+var DB_FILE_NAME = 'Data';
 const DB_FILE_EXTENSION = '.json';
-const DB_FILE_PATH = DATA_PATH + DB_FILE_NAME + DB_FILE_EXTENSION;
-const CSV_FILE_NAME = 'Data';
+var DB_FILE_PATH;
+var CSV_FILE_NAME = 'Data';
 const CSV_FILE_EXTENSION = '.csv'
-const CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME + CSV_FILE_EXTENSION;
+var CSV_FILE_PATH;
 
 var _data;
 var _headers;
 var _mapping;
 
 module.exports = {
-	LoadDatabase: function(mapping, callback) {
+	LoadDatabase: function(mapping, callback, isTest) {
+		if (isTest) {
+			DB_FILE_NAME += '-Test';
+			CSV_FILE_NAME += '-Test';
+		}
+		DB_FILE_PATH = DATA_PATH + DB_FILE_NAME + DB_FILE_EXTENSION;
+		CSV_FILE_PATH = DATA_PATH + CSV_FILE_NAME + CSV_FILE_EXTENSION;
+		
 		_fs.stat(DB_FILE_PATH, (err, stats) => {
 			if (!stats) {
 				console.log('Database does not exist, creating..');

@@ -1,6 +1,6 @@
 
-var _dbo = require('./database-operations');
-var _schedule = require('node-schedule');
+var _dbo = require('./database-operations'),
+	_schedule = require('node-schedule');
 
 var _mapping = {
 	DATE: 'Date',
@@ -21,4 +21,4 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	//}, 10);
 	
 	_dbo.CreateArchives(_mapping);
-});
+}, true);
