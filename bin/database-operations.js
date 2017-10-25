@@ -113,10 +113,10 @@ module.exports = {
 				postfix = 'PM';
 			else if (hour == 0) {
 			  	hour = 12;
-			  	postfix = 'PM';
+			  	postfix = 'AM';
 			}
 			else
-			  postfix = 'AM'
+			  postfix = 'AM';
 
 			return  date + ' - ' + hour + ':' + min + ' ' + postfix;
 		}
