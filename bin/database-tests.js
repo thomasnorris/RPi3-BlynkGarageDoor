@@ -37,7 +37,7 @@ function Fill(callback) {
 	_newData[_mapping.WELL_TIMER] = max;
 	var interval = setInterval(() => {
 		if (i != max) {
-			++_newData[_mapping.WELL_RECHARGE_COUNTER];
+			console.log(_dto.MinutesAsHoursMins(++_newData[_mapping.WELL_RECHARGE_COUNTER]));
 			++_newData[_mapping.COLUMBIA_TIMER];
 			--_newData[_mapping.WELL_TIMER];
 			_newData[_mapping.CFH_COUNTER] = Math.floor(Math.random() * (max - 1) + i);

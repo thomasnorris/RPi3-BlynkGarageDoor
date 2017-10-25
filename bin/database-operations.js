@@ -79,7 +79,7 @@ module.exports = {
 		for (var i = 2; i < keys.length - 1; i++) {
 			var num = csvData[keys[i]]
 			if (num != undefined)
-				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMinutes(num);
+				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
 		}
 		module.exports.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},

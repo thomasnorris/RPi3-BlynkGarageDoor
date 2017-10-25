@@ -43,7 +43,7 @@ module.exports = {
 		}
 	}, 
 
-	ConvertMinutesToHoursAndMinutes: function(minutes) {
+	MinutesAsHoursMins: function(minutes) {
 		var h = Math.floor(minutes / 60);
 		var m = minutes % 60;
 
