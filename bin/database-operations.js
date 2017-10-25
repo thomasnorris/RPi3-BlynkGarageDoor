@@ -30,8 +30,6 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			if (err) throw err;
-			
 			if (!stats) {
 				_fs.openSync(_dbPathWithName, 'w');
 				_fs.openSync(_csvPathWithName, 'w');

@@ -83,8 +83,6 @@ function InitializeValues() {
 function StartWellRehargeMonitoring() {
 	var interval;
 	_wellRechargeInput.watch((err, value) => {
-		if (err) throw err;
-		
 		clearInterval(interval);
 		if (value.toString() == 1) {
 			var i = 1;
