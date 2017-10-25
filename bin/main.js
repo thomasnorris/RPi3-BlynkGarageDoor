@@ -62,7 +62,7 @@ function StartSchedules() {
 }
 
 function InitializeValues() {
-	_wellRechargeCounter.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_RECHARGE_COUNTER]));
+	_wellRechargeCounter.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
 	_columbiaTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 	_wellTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 	_cfhCounter.write(_newData[_mapping.CFH_COUNTER]);
@@ -84,7 +84,9 @@ function StartWellRehargeMonitoring() {
 			interval = setInterval(() => {
 				_wellRechargeLevel.write(i);
 				if (i == RECHARGE_TIME_MINUTES) {
-					_wellRechargeCounter.write(_dto.MinutesAsHoursMins(++_newData[_mapping.WELL_RECHARGE_COUNTER]));
+					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+					_newData[_mapping.COLUMBIA_TIMER] = Math.floor(Math.random() * (100 - 1) + 1);
+					_columbiaTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 					_dbo.AddToDatabase(_newData);
 					clearInterval(interval);
 				} else 
