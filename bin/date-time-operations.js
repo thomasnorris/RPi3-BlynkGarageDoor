@@ -1,5 +1,5 @@
 
-module.exports = {
+var _outerFunc = module.exports = {
 	GetCurrentDate: function() {
 		var today = new Date();
 		var day = today.getDate();

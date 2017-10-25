@@ -20,11 +20,11 @@ var _mapping;
 // --Database == .json file
 // --CSV == .csv file
 
-module.exports = {
+var _outerFunc = module.exports = {
 	LoadDatabase: function(mapping, callback, isTest) {
 		if (isTest) {
-			_dbFileName += '-Test';
-			_csvFileName += '-Test';
+			_dbFileName += '-test';
+			_csvFileName += '-test';
 		}
 		_dbPathWithName = DATA_PATH + _dbFileName + DB_FILE_EXTENSION;
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
@@ -40,14 +40,14 @@ module.exports = {
 				});
 
 				CreateNewCsv();
-				module.exports.WriteToDatabase();
-				module.exports.WriteToCsv();
+				_outerFunc.WriteToDatabase();
+				_outerFunc.WriteToCsv();
 			}
-			_data = module.exports.ReadDatabase();
+			_data = _outerFunc.ReadDatabase();
 			_headers = Object.keys(_data);
 			_mapping = mapping;
 
-			var recentData = module.exports.GetRecentlyLoggedData();
+			var recentData = _outerFunc.GetRecentlyLoggedData();
 
 			Object.keys(recentData).forEach((key) => {
 				// --Will be undefined if from a new CSV and 0 is more friendly
@@ -66,7 +66,7 @@ module.exports = {
 				// --Pushing empty array because something has to be written on creation
 				csvData.push([]);
 			});
-			module.exports.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
+			_outerFunc.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
 		}
 	},
 	
@@ -79,7 +79,7 @@ module.exports = {
 	},
 
 	WriteToCsv: function() {
-		var csvData = module.exports.GetRecentlyLoggedData();
+		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		// --Start at 2 and skip the last one because they do not need to be formatted
 		for (var i = 2; i < keys.length - 1; i++) {
@@ -87,7 +87,7 @@ module.exports = {
 			if (num != undefined)
 				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
 		}
-		module.exports.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
+		_outerFunc.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},
 
 	WriteToDatabase: function() {
@@ -101,8 +101,8 @@ module.exports = {
 		for (var i = 1; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
 		}
-		module.exports.WriteToDatabase();
-		_data = module.exports.ReadDatabase();
+		_outerFunc.WriteToDatabase();
+		_data = _outerFunc.ReadDatabase();
 	},
 
 	ReadDatabase: function() {
@@ -117,13 +117,13 @@ module.exports = {
 	},
 
 	CreateArchives: function() {
-		var dataToKeep = module.exports.GetRecentlyLoggedData();
+		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION);
 
 		_fs.renameSync(_dbPathWithName, dbArchivePathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
-		module.exports.LoadDatabase(_mapping, () => {
+		_outerFunc.LoadDatabase(_mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
 			module.exports.WriteToCsv();
 		});
