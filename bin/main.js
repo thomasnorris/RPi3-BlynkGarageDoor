@@ -9,19 +9,19 @@ var	blynkLibrary = require('blynk-library'),
 
 var	_vPinArr = [],
 	_vLedArr = [],
-	_manualOverride = new _blynk.VirtualPin(0), 
-	_manualColumbia = new _blynk.VirtualPin(1), 
-	_manualWell = new _blynk.VirtualPin(2),
-	_wellRechargeLevel = new _blynk.VirtualPin(3), 
-	_wellRechargeCounter = new _blynk.VirtualPin(4),
-	_columbiaTimer = new _blynk.VirtualPin(5),
+	_manualOverrideButton = new _blynk.VirtualPin(0), 
+	_manualColumbiaButton = new _blynk.VirtualPin(1), 
+	_manualWellButton = new _blynk.VirtualPin(2),
+	_wellRechargeLevelDisplay = new _blynk.VirtualPin(3), 
+	_wellRechargeCounterDisplay = new _blynk.VirtualPin(4),
+	_columbiaTimerDisplay = new _blynk.VirtualPin(5),
 	_usingColumbiaLed = new _blynk.WidgetLED(6),
-	_wellTimer = new _blynk.VirtualPin(7),
+	_wellTimerDisplay = new _blynk.VirtualPin(7),
 	_usingWellLed = new _blynk.WidgetLED(8),
-	_cfhCounter = new _blynk.VirtualPin(9),
+	_cfhCounterDisplay = new _blynk.VirtualPin(9),
 	_cfhLed = new _blynk.WidgetLED(10),
 	_boilerCfgLed = new _blynk.WidgetLED(11);
-_vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel); // --No vPins from _mapping
+_vPinArr.push(_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeLevelDisplay); // --No vPins from _mapping
 _vLedArr.push(_usingColumbiaLed, _usingWellLed, _cfhLed, _boilerCfgLed); // --All leds
 
 var _gpioArr = [],
@@ -35,6 +35,7 @@ _gpioArr.push(_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRela
 
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_INTERVAL_MILLI = 1000;
+const TIMER_INTERVAL_MILLI = 10000;
 const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 const CRON_ARCHIVE_SCHEDULE = '0 0 * */1 *';
 
@@ -52,12 +53,96 @@ _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {
 		_newData = recentData;
 		InitializeValues();
-		BlynkTriggerGpio(_manualColumbia, _columbiaValveRelayOutput);
-		BlynkTriggerGpio(_manualWell, _wellValveRelayOutput);
-		StartWellRehargeMonitoring();
+		BlynkTriggerGpio(_manualColumbiaButton, _columbiaValveRelayOutput);
+		BlynkTriggerGpio(_manualWellButton, _wellValveRelayOutput);
+		StartInputMonitoring();
 		StartSchedules();
 	});
 });
+
+function StartInputMonitoring() {
+	var isCfh = false;
+	var isBoilerCfg = false;
+	var isWellCharged = false;
+
+	var wellRechargeInterval;
+	var chargeInProgress = false;
+	_wellRechargeInput.watch((err, value) => {
+		clearInterval(wellRechargeInterval);
+		if (value.toString() == 1 && !chargeInProgress) {
+			_wellRechargeLevelDisplay.write(0);
+			chargeInProgress = true;
+			isWellCharged = false;
+			var i = 1;
+			wellRechargeInterval = setInterval(() => {
+				_wellRechargeLevelDisplay.write(i);
+				if (i == RECHARGE_TIME_MINUTES) {
+					_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+					_dbo.AddToDatabase(_newData);
+					chargeInProgress = false;
+					isWellCharged = true;
+					clearInterval(wellRechargeInterval);
+				} else 
+					i++;
+			}, RECHARGE_INTERVAL_MILLI);
+		}
+	});
+	_cfhInput.watch((err, value) => {
+		if (value.toString() == 1) {
+			_cfhLed.turnOn();
+			isCfh = true;
+			_boilerStartRelayOutput.writeSync(0);
+		} else {
+			_cfhLed.turnOff();
+			isCfh = false;
+			_boilerStartRelayOutput.writeSync(1);
+		} 
+	});
+	_boilerCfgInput.watch((err, value) => {
+		while (value.toString() == 1) {
+			_boilerCfgLed.turnOn();
+			isBoilerCfg = true;
+			if (isWellCharged) {
+				_wellValveRelayOutput.writeSync(0);
+				_columbiaValveRelayOutput.writeSync(1);
+			} else {
+				_columbiaValveRelayOutput.writeSync(0);
+				_wellValveRelayOutput.writeSync(1);
+			}
+		} 
+		_boilerCfgLed.turnOff();
+		isBoilerCfg = false;
+		_columbiaValveRelayOutput.writeSync(1);
+		_wellValveRelayOutput.writeSync(1);
+	});
+	
+	var timerRunning = false;
+	var wellInterval;
+	var columbiaInterval;
+
+	while (isCfh && isBoilerCfg) {
+		if (isWellCharged && !timerRunning) {
+			clearInterval(columbiaInterval);
+			wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
+		}
+		else if (!timerRunning) {
+			clearInterval(wellInterval);
+			columbiaInterval = RunTimer(_columbiaTimerDisplay, _newData[_mapping.COLUMBIA_TIMER]);
+		}
+	}
+
+	while (!isCfh || !isBoilerCfg) {
+		timerRunning = false;
+	}
+
+	function RunTimer(blynkDisplay, dataToUpdate) {
+		timerRunning = true;
+		return setInterval(() => {
+			blynkDisplay.write(++dataToUpdate);
+			_dbo.AddToDatabase(_newData);
+		}, TIMER_INTERVAL_MILLI);
+	}
+}
 
 function StartSchedules() {
 	_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
@@ -69,10 +154,10 @@ function StartSchedules() {
 }
 
 function InitializeValues() {
-	_wellRechargeCounter.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
-	_columbiaTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
-	_wellTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
-	_cfhCounter.write(_newData[_mapping.CFH_COUNTER]);
+	_wellRechargeCounterDisplay.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
+	_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
+	_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
+	_cfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 
 	_gpioArr.forEach((gpio) => {
 		gpio.writeSync(1);
@@ -83,68 +168,6 @@ function InitializeValues() {
 	_vLedArr.forEach((vLed) => {
 		vLed.turnOff();
 	});
-}
-
-function StartWellRehargeMonitoring() {
-	var isCfh;
-	var isBoilerCfg;
-
-	var wellRechargeInterval;
-	var chargeInProgress = false;
-	_wellRechargeInput.watch((err, value) => {
-		clearInterval(wellRechargeInterval);
-		if (value.toString() == 1 && !chargeInProgress) {
-			_wellRechargeLevel.write(0);
-			chargeInProgress = true;
-			var i = 1;
-			wellRechargeInterval = setInterval(() => {
-				_wellRechargeLevel.write(i);
-				if (i == RECHARGE_TIME_MINUTES) {
-					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
-					_dbo.AddToDatabase(_newData);
-					chargeInProgress = false;
-					clearInterval(wellRechargeInterval);
-				} else 
-					i++;
-			}, RECHARGE_INTERVAL_MILLI);
-		}
-	});
-	_cfhInput.watch((err, value) => {
-		if (value.toString() == 1) {
-			isCfh = true;
-			TurnRelayAndLedOn(_boilerStartRelayOutput, _cfhLed);
-		} else {
-			isCfh = false;
-			TurnRelayAndLedOff(_boilerStartRelayOutput, _cfhLed);
-			_boilerStartRelayOutput.writeSync(1);
-			_cfhLed.turnOff();
-		} 
-	});
-	_boilerCfgInput.watch((err, value) => {
-		while (value.toString() == 1) {
-			_boilerCfgLed.turnOn();
-			isBoilerCfg = true;
-			if (!chargeInProgress) {
-				TurnRelayAndLedOn(_wellValveRelayOutput, _usingWellLed);
-				TurnRelayAndLedOff(_columbiaValveRelayOutput, _usingColumbiaLed);
-			} else {
-				TurnRelayAndLedOn(_columbiaValveRelayOutput, _usingColumbiaLed);
-				TurnRelayAndLedOff(_wellValveRelayOutput, _usingWellLed);
-			}
-		} 
-		isBoilerCfg = false;
-		_boilerCfgLed.turnOff();
-	});
-
-	function TurnRelayAndLedOn(relay, led) {
-		relay.writeSync(0);
-		led.turnOn();
-	}
-
-	function TurnRelayAndLedOff(relay, led) {
-		relay.writeSync(1);
-		led.turnOff();
-	}
 }
 
 function BlynkTriggerGpio(trigger, gpio) {
