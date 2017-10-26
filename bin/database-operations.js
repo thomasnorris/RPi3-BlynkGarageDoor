@@ -4,7 +4,7 @@ var _fs = require('fs'),
 	_dto = require('./date-time-operations');
 
 const DATA_PATH = __dirname + '/data/';
-const ARCHIVE_PATH = DATA_PATH + '/archive/';
+const ARCHIVE_PATH = DATA_PATH + '/Archive/';
 const DB_FILE_EXTENSION = '.json';
 const CSV_FILE_EXTENSION = '.csv';
 
