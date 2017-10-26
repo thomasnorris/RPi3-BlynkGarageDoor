@@ -74,16 +74,15 @@ function StartInputMonitoring() {
 			chargeInProgress = true;
 			isWellCharged = false;
 
-			var i = 1;
 			RechargeLoop();
 			wellRechargeInterval = setInterval(RechargeLoop, RECHARGE_INTERVAL_MILLI);
 		} else
 			chargeInProgress = false;
 
+		var i = 0;
 		function RechargeLoop() {
-			_wellRechargeLevelDisplay.write(i);
-			if (i != RECHARGE_TIME_MINUTES) 
-				i++;
+			if (i != RECHARGE_TIME_MINUTES)
+				_wellRechargeLevelDisplay.write(++i);
 			else {
 				_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 				_dbo.AddToDatabase(_newData);
