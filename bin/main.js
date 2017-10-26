@@ -26,8 +26,12 @@ _vLedArr.push(_usingColumbiaLed, _usingWellLed, _cfhLed, _boilerCfgLed);
 
 var _gpioArr = [],
 	_wellRechargeInput = new _gpio(26, 'in', 'both'),
-	_g4 = new _gpio(4, 'high');
-_gpioArr.push(_g4); // --No input gpio
+	_boilerCfgInput = new _gpio(13, 'in', 'both'),
+	_cfhInput = new _gpio(6, 'in', 'both'),
+	_columbiaValveRelayOutput = new _gpio(4, 'high'),
+	_wellValveRelayOutput = new _gpio(17, 'high'),
+	_boilerStartRelayOutput = new _gpio(27, 'high');
+_gpioArr.push(_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput); // --No input gpio
 
 const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_COUNTUP_MILI = 1000;
@@ -48,7 +52,7 @@ _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {
 		_newData = recentData;
 		InitializeValues();
-		BlynkTriggerGpio(_manualColumbia, _g4);
+		BlynkTriggerGpio(_manualColumbia, _columbiaValveRelayOutput);
 		StartWellRehargeMonitoring();
 		StartSchedules();
 	});
