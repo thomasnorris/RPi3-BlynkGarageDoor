@@ -82,12 +82,15 @@ function InitializeValues() {
 	});
 	_vLedArr.forEach((vLed) => {
 		vLed.turnOff();
-	})
+	});
 }
 
 function StartWellRehargeMonitoring() {
+	var isCfh;
+	var isBoilerCfg;
+
 	var interval;
-	var isWellCharged;
+	var chargeInProgress
 	_wellRechargeInput.watch((err, value) => {
 		clearInterval(interval);
 		if (value.toString() == 1 && !chargeInProgress) {
@@ -106,6 +109,40 @@ function StartWellRehargeMonitoring() {
 			}, RECHARGE_INTERVAL_MILLI);
 		}
 	});
+	_cfhInput.watch((err, value) => {
+		if (value.toString() == 1) {
+			isCfh = true;
+			TurnRelayAndLedOn(_boilerStartRelayOutput, _cfhLed);
+		} else {
+			isCfh = false;
+			TurnRelayAndLedOff(_boilerStartRelayOutput, _cfhLed);
+			_boilerStartRelayOutput.writeSync(1);
+			_cfhLed.turnOff();
+		} 
+	});
+	_boilerCfgInput.watch((err, value) => {
+		while (value.toString() == 1) {
+			isBoilerCfg = true;
+			if (!chargeInProgress) {
+				TurnRelayAndLedOn(_wellValveRelayOutput, _usingWellLed);
+				TurnRelayAndLedOff(_columbiaValveRelayOutput, _usingColumbiaLed);
+			} else {
+				TurnRelayAndLedOn(_columbiaValveRelayOutput, _usingColumbiaLed);
+				TurnRelayAndLedOff(_wellValveRelayOutput, _usingWellLed);
+			}
+		} 
+		isBoilerCfg = false;
+	});
+
+	function TurnRelayAndLedOn(relay, led) {
+		relay.writeSync(0);
+		led.turnOn();
+	}
+
+	function TurnRelayAndLedOff(relay, led) {
+		relay.writeSync(1);
+		led.turnOff();
+	}
 }
 
 function BlynkTriggerGpio(trigger, gpio) {
