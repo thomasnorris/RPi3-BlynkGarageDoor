@@ -89,6 +89,7 @@ function StartInputMonitoring() {
 	});
 	_cfhInput.watch((err, value) => {
 		if (value.toString() == 1) {
+			_cfhCounterDisplay.write(++_newData[_mapping.CFH_COUNTER]);
 			_cfhLed.turnOn();
 			isCfh = true;
 			_boilerStartRelayOutput.writeSync(0);
@@ -115,7 +116,7 @@ function StartInputMonitoring() {
 		_columbiaValveRelayOutput.writeSync(1);
 		_wellValveRelayOutput.writeSync(1);
 	});
-	
+
 	var timerRunning = false;
 	var wellInterval;
 	var columbiaInterval;
@@ -138,7 +139,7 @@ function StartInputMonitoring() {
 	function RunTimer(blynkDisplay, dataToUpdate) {
 		timerRunning = true;
 		return setInterval(() => {
-			blynkDisplay.write(++dataToUpdate);
+			blynkDisplay.write(_dto.MinutesAsHoursMins(++dataToUpdate));
 			_dbo.AddToDatabase(_newData);
 		}, TIMER_INTERVAL_MILLI);
 	}
