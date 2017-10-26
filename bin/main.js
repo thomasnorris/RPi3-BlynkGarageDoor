@@ -122,13 +122,14 @@ function StartInputMonitoring() {
 	var columbiaInterval;
 
 	while (isCfh && isBoilerCfg) {
-		if (isWellCharged && !timerRunning) {
-			clearInterval(columbiaInterval);
-			wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
-		}
-		else if (!timerRunning) {
-			clearInterval(wellInterval);
-			columbiaInterval = RunTimer(_columbiaTimerDisplay, _newData[_mapping.COLUMBIA_TIMER]);
+		if (!timerRunning) {
+			if (isWellCharged) {
+				clearInterval(columbiaInterval);
+				wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
+			} else {
+				clearInterval(wellInterval);
+				columbiaInterval = RunTimer(_columbiaTimerDisplay, _newData[_mapping.COLUMBIA_TIMER]);
+			}
 		}
 	}
 
