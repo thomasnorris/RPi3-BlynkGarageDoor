@@ -70,26 +70,28 @@ function StartInputMonitoring() {
 	_wellRechargeInput.watch((err, value) => {
 		clearInterval(wellRechargeInterval);
 		if (value.toString() == 1 && !chargeInProgress) {
-			
 			_wellRechargeLevelDisplay.write(0);
 			chargeInProgress = true;
 			isWellCharged = false;
 
 			var i = 1;
-			wellRechargeInterval = setInterval(() => {
-				_wellRechargeLevelDisplay.write(i);
-				if (i != RECHARGE_TIME_MINUTES) 
-					i++;
-				else {
-					_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
-					_dbo.AddToDatabase(_newData);
-					chargeInProgress = false;
-					isWellCharged = true;
-					clearInterval(wellRechargeInterval);
-				} 
-			}, RECHARGE_INTERVAL_MILLI);
+			RechargeLoop();
+			wellRechargeInterval = setInterval(RechargeLoop, RECHARGE_INTERVAL_MILLI);
 		} else
 			chargeInProgress = false;
+
+		function RechargeLoop() {
+			_wellRechargeLevelDisplay.write(i);
+			if (i != RECHARGE_TIME_MINUTES) 
+				i++;
+			else {
+				_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+				_dbo.AddToDatabase(_newData);
+				chargeInProgress = false;
+				isWellCharged = true;
+				clearInterval(wellRechargeInterval);
+			} 
+		}
 	});
 
 	_cfhInput.watch((err, value) => {
