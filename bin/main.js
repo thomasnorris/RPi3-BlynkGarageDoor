@@ -76,16 +76,18 @@ function StartInputMonitoring() {
 			var i = 1;
 			wellRechargeInterval = setInterval(() => {
 				_wellRechargeLevelDisplay.write(i);
-				if (i == RECHARGE_TIME_MINUTES) {
+				if (i != RECHARGE_TIME_MINUTES) 
+					i++;
+				else {
 					_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					_dbo.AddToDatabase(_newData);
 					chargeInProgress = false;
 					isWellCharged = true;
 					clearInterval(wellRechargeInterval);
-				} else 
-					i++;
+				} 
 			}, RECHARGE_INTERVAL_MILLI);
-		}
+		} else
+			chargeInProgress = false;
 	});
 	_cfhInput.watch((err, value) => {
 		if (value.toString() == 1) {
@@ -111,34 +113,33 @@ function StartInputMonitoring() {
 				_wellValveRelayOutput.writeSync(1);
 			}
 		} 
-		_boilerCfgLed.turnOff();
-		isBoilerCfg = false;
-		_columbiaValveRelayOutput.writeSync(1);
-		_wellValveRelayOutput.writeSync(1);
+		if (value.toString() == 0) {
+			_boilerCfgLed.turnOff();
+			isBoilerCfg = false;
+			_columbiaValveRelayOutput.writeSync(1);
+			_wellValveRelayOutput.writeSync(1);
+		}
 	});
 
-	var timerRunning = false;
-	var wellInterval;
-	var columbiaInterval;
+	//var wellInterval = null;
+	//var columbiaInterval = null;
+	//while (isCfh && isBoilerCfg) {
+	//	if (isWellCharged) {
+	//		clearInterval(columbiaInterval);
+	//		wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
+	//	} else {
+	//		clearInterval(wellInterval);
+	//		columbiaInterval = RunTimer(_columbiaTimerDisplay, _newData[_mapping.COLUMBIA_TIMER]);
+	//	}
+	//}
 
-	while (isCfh && isBoilerCfg) {
-		if (!timerRunning) {
-			if (isWellCharged) {
-				clearInterval(columbiaInterval);
-				wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
-			} else {
-				clearInterval(wellInterval);
-				columbiaInterval = RunTimer(_columbiaTimerDisplay, _newData[_mapping.COLUMBIA_TIMER]);
-			}
-		}
-	}
-
-	while (!isCfh || !isBoilerCfg) {
-		timerRunning = false;
-	}
+	//while (!isCfh || !isBoilerCfg) {
+	//	timerRunning = false;
+	//	clearInterval(columbiaInterval);
+	//	clearInterval(wellInterval);
+	//}
 
 	function RunTimer(blynkDisplay, dataToUpdate) {
-		timerRunning = true;
 		return setInterval(() => {
 			blynkDisplay.write(_dto.MinutesAsHoursMins(++dataToUpdate));
 			_dbo.AddToDatabase(_newData);
