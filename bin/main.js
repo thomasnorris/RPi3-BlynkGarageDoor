@@ -89,21 +89,21 @@ function StartWellRehargeMonitoring() {
 	var isCfh;
 	var isBoilerCfg;
 
-	var interval;
-	var chargeInProgress
+	var wellRechargeInterval;
+	var chargeInProgress = false;
 	_wellRechargeInput.watch((err, value) => {
-		clearInterval(interval);
+		clearInterval(wellRechargeInterval);
 		if (value.toString() == 1 && !chargeInProgress) {
 			_wellRechargeLevel.write(0);
 			chargeInProgress = true;
 			var i = 1;
-			interval = setInterval(() => {
+			wellRechargeInterval = setInterval(() => {
 				_wellRechargeLevel.write(i);
 				if (i == RECHARGE_TIME_MINUTES) {
 					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					_dbo.AddToDatabase(_newData);
 					chargeInProgress = false;
-					clearInterval(interval);
+					clearInterval(wellRechargeInterval);
 				} else 
 					i++;
 			}, RECHARGE_INTERVAL_MILLI);
@@ -122,6 +122,7 @@ function StartWellRehargeMonitoring() {
 	});
 	_boilerCfgInput.watch((err, value) => {
 		while (value.toString() == 1) {
+			_boilerCfgLed.turnOn();
 			isBoilerCfg = true;
 			if (!chargeInProgress) {
 				TurnRelayAndLedOn(_wellValveRelayOutput, _usingWellLed);
@@ -132,6 +133,7 @@ function StartWellRehargeMonitoring() {
 			}
 		} 
 		isBoilerCfg = false;
+		_boilerCfgLed.turnOff();
 	});
 
 	function TurnRelayAndLedOn(relay, led) {
