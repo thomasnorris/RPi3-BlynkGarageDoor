@@ -70,9 +70,11 @@ function StartInputMonitoring() {
 	_wellRechargeInput.watch((err, value) => {
 		clearInterval(wellRechargeInterval);
 		if (value.toString() == 1 && !chargeInProgress) {
+			
 			_wellRechargeLevelDisplay.write(0);
 			chargeInProgress = true;
 			isWellCharged = false;
+
 			var i = 1;
 			wellRechargeInterval = setInterval(() => {
 				_wellRechargeLevelDisplay.write(i);
@@ -89,6 +91,7 @@ function StartInputMonitoring() {
 		} else
 			chargeInProgress = false;
 	});
+
 	_cfhInput.watch((err, value) => {
 		if (value.toString() == 1) {
 			_cfhCounterDisplay.write(++_newData[_mapping.CFH_COUNTER]);
@@ -101,6 +104,7 @@ function StartInputMonitoring() {
 			_boilerStartRelayOutput.writeSync(1);
 		} 
 	});
+
 	_boilerCfgInput.watch((err, value) => {
 		while (value.toString() == 1) {
 			_boilerCfgLed.turnOn();
