@@ -18,16 +18,16 @@ var	_vPinArr = [],
 	_usingColumbiaLed = new _blynk.WidgetLED(6),
 	_wellTimerDisplay = new _blynk.VirtualPin(7),
 	_usingWellLed = new _blynk.WidgetLED(8),
-	_cfhCounterDisplay = new _blynk.VirtualPin(9),
-	_cfhLed = new _blynk.WidgetLED(10),
+	_ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9),
+	_ecobeeCfhLed = new _blynk.WidgetLED(10),
 	_boilerCfgLed = new _blynk.WidgetLED(11);
 _vPinArr.push(_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeLevelDisplay); // --No vPins from _mapping
-_vLedArr.push(_usingColumbiaLed, _usingWellLed, _cfhLed, _boilerCfgLed); // --All leds
+_vLedArr.push(_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed); // --All leds
 
 var _gpioArr = [],
-	_wellRechargeInput = new _gpio(26, 'in', 'both'),
+	_wellPressureSwitchInput = new _gpio(26, 'in', 'both'),
 	_boilerCfgInput = new _gpio(13, 'in', 'both'),
-	_cfhInput = new _gpio(6, 'in', 'both'),
+	_ecobeeCfhInput = new _gpio(6, 'in', 'both'),
 	_columbiaValveRelayOutput = new _gpio(4, 'high'),
 	_wellValveRelayOutput = new _gpio(17, 'high'),
 	_boilerStartRelayOutput = new _gpio(27, 'high');
@@ -61,13 +61,13 @@ _blynk.on('connect', () => {
 });
 
 function StartInputMonitoring() {
-	var isCfh = false;
+	var isEcobeeCfh = false;
 	var isBoilerCfg = false;
 	var isWellCharged = false;
 
 	var wellRechargeInterval;
 	var chargeInProgress = false;
-	_wellRechargeInput.watch((err, value) => {
+	_wellPressureSwitchInput.watch((err, value) => {
 		clearInterval(wellRechargeInterval);
 		if (value.toString() == 1 && !chargeInProgress) {
 			_wellRechargeLevelDisplay.write(0);
@@ -93,15 +93,15 @@ function StartInputMonitoring() {
 		}
 	});
 
-	_cfhInput.watch((err, value) => {
+	_ecobeeCfhInput.watch((err, value) => {
 		if (value.toString() == 1) {
-			_cfhCounterDisplay.write(++_newData[_mapping.CFH_COUNTER]);
-			_cfhLed.turnOn();
-			isCfh = true;
+			_ecobeeCfhCounterDisplay.write(++_newData[_mapping.CFH_COUNTER]);
+			_ecobeeCfhLed.turnOn();
+			isEcobeeCfh = true;
 			_boilerStartRelayOutput.writeSync(0);
 		} else {
-			_cfhLed.turnOff();
-			isCfh = false;
+			_ecobeeCfhLed.turnOff();
+			isEcobeeCfh = false;
 			_boilerStartRelayOutput.writeSync(1);
 		} 
 	});
@@ -128,7 +128,7 @@ function StartInputMonitoring() {
 
 	//var wellInterval = null;
 	//var columbiaInterval = null;
-	//while (isCfh && isBoilerCfg) {
+	//while (isEcobeeCfh && isBoilerCfg) {
 	//	if (isWellCharged) {
 	//		clearInterval(columbiaInterval);
 	//		wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
@@ -138,7 +138,7 @@ function StartInputMonitoring() {
 	//	}
 	//}
 
-	//while (!isCfh || !isBoilerCfg) {
+	//while (!isEcobeeCfh || !isBoilerCfg) {
 	//	timerRunning = false;
 	//	clearInterval(columbiaInterval);
 	//	clearInterval(wellInterval);
@@ -165,7 +165,7 @@ function InitializeValues() {
 	_wellRechargeCounterDisplay.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
 	_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 	_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
-	_cfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
+	_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 
 	_gpioArr.forEach((gpio) => {
 		gpio.writeSync(1);
