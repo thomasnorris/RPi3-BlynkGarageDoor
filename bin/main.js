@@ -42,7 +42,7 @@ var _mapping = {
 	CFH_COUNTER : 'Call For Heat Counter'
 }
 
-var _newData = [];
+var _newData;
 
 _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {

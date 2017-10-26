@@ -12,7 +12,7 @@ var _mapping = {
 	CFH_COUNTER : 'Call For Heat Counter'
 }
 
-var _newData = [];
+var _newData;
 
 _dbo.LoadDatabase(_mapping, (recentData) => {
 	_newData = recentData;
@@ -24,7 +24,7 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 				_dbo.CreateArchives();
 				console.log('Archive completed, exiting...');
 			}
-			else if (input == 'e') 
+			else
 				console.log('Exiting.');
 			_rl.close();
 		});
