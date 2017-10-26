@@ -22,7 +22,7 @@ var	_vPinArr = [],
 	_cfhLed = new _blynk.WidgetLED(10),
 	_boilerCfgLed = new _blynk.WidgetLED(11);
 _vPinArr.push(_manualOverride, _manualWell, _manualColumbia, _wellRechargeLevel); // --No vPins from _mapping
-_vLedArr.push(_usingColumbiaLed, _usingWellLed, _cfhLed, _boilerCfgLed);
+_vLedArr.push(_usingColumbiaLed, _usingWellLed, _cfhLed, _boilerCfgLed); // --All leds
 
 var _gpioArr = [],
 	_wellRechargeInput = new _gpio(26, 'in', 'both'),
@@ -34,7 +34,7 @@ var _gpioArr = [],
 _gpioArr.push(_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput); // --No input gpio
 
 const RECHARGE_TIME_MINUTES = 5;
-const RECHARGE_COUNTUP_MILI = 1000;
+const RECHARGE_INTERVAL_MILLI = 1000;
 const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 const CRON_ARCHIVE_SCHEDULE = '0 0 * */1 *';
 
@@ -53,6 +53,7 @@ _blynk.on('connect', () => {
 		_newData = recentData;
 		InitializeValues();
 		BlynkTriggerGpio(_manualColumbia, _columbiaValveRelayOutput);
+		BlynkTriggerGpio(_manualWell, _wellValveRelayOutput);
 		StartWellRehargeMonitoring();
 		StartSchedules();
 	});
@@ -86,23 +87,24 @@ function InitializeValues() {
 
 function StartWellRehargeMonitoring() {
 	var interval;
+	var isWellCharged;
 	_wellRechargeInput.watch((err, value) => {
 		clearInterval(interval);
-		if (value.toString() == 1) {
+		if (value.toString() == 1 && !chargeInProgress) {
+			_wellRechargeLevel.write(0);
+			chargeInProgress = true;
 			var i = 1;
 			interval = setInterval(() => {
 				_wellRechargeLevel.write(i);
 				if (i == RECHARGE_TIME_MINUTES) {
 					_wellRechargeCounter.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
-					_newData[_mapping.COLUMBIA_TIMER] = Math.floor(Math.random() * (100 - 1) + 1);
-					_columbiaTimer.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 					_dbo.AddToDatabase(_newData);
+					chargeInProgress = false;
 					clearInterval(interval);
 				} else 
 					i++;
-			}, RECHARGE_COUNTUP_MILI);
-		} else 
-			_wellRechargeLevel.write(0);
+			}, RECHARGE_INTERVAL_MILLI);
+		}
 	});
 }
 
