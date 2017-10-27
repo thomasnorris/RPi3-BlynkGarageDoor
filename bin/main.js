@@ -27,7 +27,7 @@ _vLedArr.push(_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed); /
 var _gpioArr = [],
 	_wellPressureSwitchInput = new _gpio(26, 'in', 'both'),
 	_boilerCfgInput = new _gpio(13, 'in', 'both'),
-	_ecobeeCfhInput = new _gpio(6, 'in', 'both'),
+	_ecobeeCfhInput = new _gpio(16, 'in', 'both'),
 	_columbiaValveRelayOutput = new _gpio(4, 'high'),
 	_wellValveRelayOutput = new _gpio(17, 'high'),
 	_boilerStartRelayOutput = new _gpio(27, 'high');
@@ -68,26 +68,24 @@ function StartInputMonitoring() {
 	var wellRechargeInterval;
 	var chargeInProgress = false;
 	_wellPressureSwitchInput.watch((err, value) => {
-		clearInterval(wellRechargeInterval);
 		if (value.toString() == 1 && !chargeInProgress) {
 			_wellRechargeLevelDisplay.write(0);
 			chargeInProgress = true;
 			isWellCharged = false;
 
+			var i = 0;
 			RechargeLoop();
 			wellRechargeInterval = setInterval(RechargeLoop, RECHARGE_INTERVAL_MILLI);
-		} else
-			chargeInProgress = false;
+		}
 
-		var i = 0;
 		function RechargeLoop() {
 			if (i != RECHARGE_TIME_MINUTES)
 				_wellRechargeLevelDisplay.write(++i);
 			else {
 				_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 				_dbo.AddToDatabase(_newData);
-				chargeInProgress = false;
 				isWellCharged = true;
+				chargeInProgress = false;
 				clearInterval(wellRechargeInterval);
 			} 
 		}
@@ -96,6 +94,7 @@ function StartInputMonitoring() {
 	_ecobeeCfhInput.watch((err, value) => {
 		if (value.toString() == 1) {
 			_ecobeeCfhCounterDisplay.write(++_newData[_mapping.CFH_COUNTER]);
+			_dbo.AddToDatabase(_newData);
 			_ecobeeCfhLed.turnOn();
 			isEcobeeCfh = true;
 			_boilerStartRelayOutput.writeSync(0);
@@ -106,50 +105,30 @@ function StartInputMonitoring() {
 		} 
 	});
 
+	var boilerInterval;
 	_boilerCfgInput.watch((err, value) => {
-		while (value.toString() == 1) {
-			_boilerCfgLed.turnOn();
-			isBoilerCfg = true;
-			if (isWellCharged) {
-				_wellValveRelayOutput.writeSync(0);
-				_columbiaValveRelayOutput.writeSync(1);
-			} else {
-				_columbiaValveRelayOutput.writeSync(0);
-				_wellValveRelayOutput.writeSync(1);
-			}
-		} 
-		if (value.toString() == 0) {
+		if (value.toString() == 1) {
+			clearInterval(boilerInterval);
+			boilerInterval = setInterval(() => {
+				_boilerCfgLed.turnOn();
+				isBoilerCfg = true;
+				if (isWellCharged) {
+					_wellValveRelayOutput.writeSync(0);
+					_columbiaValveRelayOutput.writeSync(1);
+				} else {
+					_columbiaValveRelayOutput.writeSync(0);
+					_wellValveRelayOutput.writeSync(1);
+				}
+			}, 100);
+			
+		} else {
+			clearInterval(boilerInterval);
 			_boilerCfgLed.turnOff();
 			isBoilerCfg = false;
 			_columbiaValveRelayOutput.writeSync(1);
 			_wellValveRelayOutput.writeSync(1);
 		}
 	});
-
-	//var wellInterval = null;
-	//var columbiaInterval = null;
-	//while (isEcobeeCfh && isBoilerCfg) {
-	//	if (isWellCharged) {
-	//		clearInterval(columbiaInterval);
-	//		wellInterval = RunTimer(_wellTimerDisplay, _newData[_mapping.WELL_TIMER]);
-	//	} else {
-	//		clearInterval(wellInterval);
-	//		columbiaInterval = RunTimer(_columbiaTimerDisplay, _newData[_mapping.COLUMBIA_TIMER]);
-	//	}
-	//}
-
-	//while (!isEcobeeCfh || !isBoilerCfg) {
-	//	timerRunning = false;
-	//	clearInterval(columbiaInterval);
-	//	clearInterval(wellInterval);
-	//}
-
-	function RunTimer(blynkDisplay, dataToUpdate) {
-		return setInterval(() => {
-			blynkDisplay.write(_dto.MinutesAsHoursMins(++dataToUpdate));
-			_dbo.AddToDatabase(_newData);
-		}, TIMER_INTERVAL_MILLI);
-	}
 }
 
 function StartSchedules() {
