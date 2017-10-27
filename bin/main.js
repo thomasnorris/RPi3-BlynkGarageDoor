@@ -62,21 +62,21 @@ _blynk.on('connect', () => {
 
 function StartInputMonitoring() {
 	var isEcobeeCfh = false;
-	var isBoilerCfg = false;
 	var isWellCharged = false;
 
 	var wellRechargeInterval;
 	var chargeInProgress = false;
 	_wellPressureSwitchInput.watch((err, value) => {
 		if (value.toString() == 1 && !chargeInProgress) {
-			_wellRechargeLevelDisplay.write(0);
 			chargeInProgress = true;
 			isWellCharged = false;
 
 			var i = 0;
 			RechargeLoop();
 			wellRechargeInterval = setInterval(RechargeLoop, RECHARGE_INTERVAL_MILLI);
-		}
+		} //else if (value.toString() == 0 && isWellCharged) {
+			//_wellRechargeLevelDisplay.write(0);
+		//}
 
 		function RechargeLoop() {
 			if (i != RECHARGE_TIME_MINUTES)
@@ -106,25 +106,49 @@ function StartInputMonitoring() {
 	});
 
 	var boilerInterval;
+	var wellInterval = null;
+	var columbiaInterval = null;
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
 			clearInterval(boilerInterval);
 			boilerInterval = setInterval(() => {
 				_boilerCfgLed.turnOn();
-				isBoilerCfg = true;
 				if (isWellCharged) {
+					clearInterval(columbiaInterval);
 					_wellValveRelayOutput.writeSync(0);
+					_usingWellLed.turnOn();
 					_columbiaValveRelayOutput.writeSync(1);
+					_usingColumbiaLed.turnOff();
+					if (wellInterval == null) {
+						wellInterval = setInterval(() => {
+							_wellTimerDisplay.write(_dto.MinutesAsHoursMins(++_newData[_mapping.WELL_TIMER]));
+							_dbo.AddToDatabase(_newData);
+						}, 1000);
+					}
 				} else {
+					clearInterval(wellInterval);
 					_columbiaValveRelayOutput.writeSync(0);
+					_usingColumbiaLed.turnOn();
 					_wellValveRelayOutput.writeSync(1);
+					_usingWellLed.turnOff();
+					if (columbiaInterval == null) {
+						columbiaInterval = setInterval(() => {
+							_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(++_newData[_mapping.COLUMBIA_TIMER]))
+							_dbo.AddToDatabase(_newData);
+						}, 1000);
+					}
 				}
 			}, 100);
 			
 		} else {
 			clearInterval(boilerInterval);
+			clearInterval(wellInterval);
+			clearInterval(columbiaInterval);
+			wellInterval = null;
+			columbiaInterval = null;
 			_boilerCfgLed.turnOff();
-			isBoilerCfg = false;
+			_usingWellLed.turnOff();
+			_usingColumbiaLed.turnOff();
 			_columbiaValveRelayOutput.writeSync(1);
 			_wellValveRelayOutput.writeSync(1);
 		}
