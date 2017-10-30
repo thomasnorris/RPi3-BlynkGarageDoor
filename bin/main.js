@@ -44,6 +44,7 @@ var _mapping = {
 var _newData;
 var _isWellCharged = false;
 
+// --Start main function
 _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {
 		_newData = recentData;
@@ -52,10 +53,82 @@ _blynk.on('connect', () => {
 		StartSchedules();
 		MonitorEcobeeCallForHeat();
 		MonitorWellPressureSwitch();
-		MonitorBoilerAndValves();
+
+		var boilerTimer;
+		var wellTimer;
+		var wellTimerRunning = false;
+		var columbiaTimer;
+		var columbiaTimerRunning = false;
+		var masterEnable = false;
+
+		_manualOverrideButton.on('write', (value) => {
+			value.toString() == 1 ? masterEnable = true : masterEnable = false;
+		});
+
+		ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell);
+		ManualValveControl(_manualWellButton, StartWellStopColumbia);
+
+		_boilerCfgInput.watch((err, value) => {
+			if (value.toString() == 1) {
+				StopTimer(boilerTimer);
+				boilerTimer = StartTimer(() => {
+					_boilerCfgLed.turnOn();
+					if (_isWellCharged) 
+						StartWellStopColumbia();
+					else 
+						StartColumbiaStopWell();
+				}, 100);
+			} else {
+				StopTimer(boilerTimer);
+				
+				_boilerCfgLed.turnOff();
+			}
+		});
+
+		function StopBothColumbiaAndWell() {
+			StopTimer(wellTimer, wellTimerRunning);
+			StopTimer(columbiaTimer, columbiaTimerRunning);
+			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+		}
+
+		function StartWellStopColumbia() {
+			StopTimer(columbiaTimer, columbiaTimerRunning);
+			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+			if (!wellTimerRunning) {
+				wellTimer = StartTimer(() => {
+					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
+				}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
+			}
+		}
+
+		function StartColumbiaStopWell() {
+			StopTimer(wellTimer, wellTimerRunning);
+			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+			if (!columbiaTimerRunning) {
+				columbiaTimer = StartTimer(() => {
+					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
+				}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
+			}
+		}
+
+		function ManualValveControl(button, startFunction) {
+			button.on('write', (value) => {
+				if (masterEnable) {
+					if (value.toString() == 1)
+						startFunction();
+					else
+						StopBothColumbiaAndWell();
+				} else
+					button.write(0);
+			});
+		}
 	});
 });
-
+// --End main function
+// --Start outer functions
 function MonitorWellPressureSwitch() {
 	var wellRechargeTimer;
 	var wellRechargeTimerRunning = false;
@@ -75,80 +148,6 @@ function MonitorWellPressureSwitch() {
 			}, ALL_TIMERS_INTERVAL_MILLI, wellRechargeTimerRunning);
 		} 
 	});
-}
-
-function MonitorBoilerAndValves() {
-	var boilerTimer;
-	var wellTimer;
-	var wellTimerRunning = false;
-	var columbiaTimer;
-	var columbiaTimerRunning = false;
-	var masterEnable = false;
-
-	_manualOverrideButton.on('write', (value) => {
-		value.toString() == 1 ? masterEnable = true : masterEnable = false;
-	});
-
-	ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell);
-	ManualValveControl(_manualWellButton, StartWellStopColumbia);
-
-	_boilerCfgInput.watch((err, value) => {
-		if (value.toString() == 1) {
-			StopTimer(boilerTimer);
-			boilerTimer = StartTimer(() => {
-				_boilerCfgLed.turnOn();
-				if (_isWellCharged) 
-					StartWellStopColumbia();
-				else 
-					StartColumbiaStopWell();
-			}, 100);
-		} else {
-			StopTimer(boilerTimer);
-			
-			_boilerCfgLed.turnOff();
-		}
-	});
-
-	function StopBothColumbiaAndWell() {
-		StopTimer(wellTimer, wellTimerRunning);
-		StopTimer(columbiaTimer, columbiaTimerRunning);
-		DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-		DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-	}
-
-	function StartWellStopColumbia() {
-		StopTimer(columbiaTimer, columbiaTimerRunning);
-		EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-		DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-		if (!wellTimerRunning) {
-			wellTimer = StartTimer(() => {
-				IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
-			}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
-		}
-	}
-
-	function StartColumbiaStopWell() {
-		StopTimer(wellTimer, wellTimerRunning);
-		EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-		DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-		if (!columbiaTimerRunning) {
-			columbiaTimer = StartTimer(() => {
-				IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
-			}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
-		}
-	}
-
-	function ManualValveControl(button, startFunction) {
-		button.on('write', (value) => {
-			if (masterEnable) {
-				if (value.toString() == 1)
-					startFunction();
-				else
-					StopBothColumbiaAndWell();
-			} else
-				button.write(0);
-		});
-	}
 }
 
 function MonitorEcobeeCallForHeat() {
