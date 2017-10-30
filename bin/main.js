@@ -49,10 +49,10 @@ _blynk.on('connect', () => {
 		_newData = recentData;
 
 		InitializeValues();
+		StartSchedules();
 		MonitorEcobeeCallForHeat();
 		MonitorWellPressureSwitch();
-		MonitorBoilerCallForGas();
-		StartSchedules();
+		MonitorBoilerAndValves();
 	});
 });
 
@@ -77,12 +77,20 @@ function MonitorWellPressureSwitch() {
 	});
 }
 
-function MonitorBoilerCallForGas() {
+function MonitorBoilerAndValves() {
 	var boilerTimer;
 	var wellTimer;
 	var wellTimerRunning = false;
 	var columbiaTimer;
 	var columbiaTimerRunning = false;
+	var masterEnable = false;
+
+	_manualOverrideButton.on('write', (value) => {
+		value.toString() == 1 ? masterEnable = true : masterEnable = false;
+	});
+
+	ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell);
+	ManualValveControl(_manualWellButton, StartWellStopColumbia);
 
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
@@ -90,21 +98,25 @@ function MonitorBoilerCallForGas() {
 			boilerTimer = StartTimer(() => {
 				_boilerCfgLed.turnOn();
 				if (_isWellCharged) 
-					StopColumbiaAndStartWell();
+					StartWellStopColumbia();
 				else 
-					StopWellAndStartColumbia();
+					StartColumbiaStopWell();
 			}, 100);
 		} else {
 			StopTimer(boilerTimer);
-			StopTimer(wellTimer, wellTimerRunning);
-			StopTimer(columbiaTimer, columbiaTimerRunning);
-			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+			
 			_boilerCfgLed.turnOff();
 		}
 	});
 
-	function StopColumbiaAndStartWell() {
+	function StopBothColumbiaAndWell() {
+		StopTimer(wellTimer, wellTimerRunning);
+		StopTimer(columbiaTimer, columbiaTimerRunning);
+		DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+		DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+	}
+
+	function StartWellStopColumbia() {
 		StopTimer(columbiaTimer, columbiaTimerRunning);
 		EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 		DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
@@ -115,7 +127,7 @@ function MonitorBoilerCallForGas() {
 		}
 	}
 
-	function StopWellAndStartColumbia() {
+	function StartColumbiaStopWell() {
 		StopTimer(wellTimer, wellTimerRunning);
 		EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 		DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
@@ -124,6 +136,18 @@ function MonitorBoilerCallForGas() {
 				IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
 			}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
 		}
+	}
+
+	function ManualValveControl(button, startFunction) {
+		button.on('write', (value) => {
+			if (masterEnable) {
+				if (value.toString() == 1)
+					startFunction();
+				else
+					StopBothColumbiaAndWell();
+			} else
+				button.write(0);
+		});
 	}
 }
 
