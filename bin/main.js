@@ -42,78 +42,57 @@ var _mapping = {
 }
 
 var _newData;
+var _isWellCharged = false;
 
 _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {
 		_newData = recentData;
 
 		InitializeValues();
-		StartInputMonitoring();
+		MonitorEcobeeCallForHeat();
+		MonitorWellPressureSwitch();
+		MonitorBoilerCallForGas();
 		StartSchedules();
 	});
 });
 
-function StartInputMonitoring() {
-	var isWellCharged = false;
-
+function MonitorWellPressureSwitch() {
 	var wellRechargeTimer;
 	var wellRechargeTimerRunning = false;
 	_wellPressureSwitchInput.watch((err, value) => {
 		if (value.toString() == 1 && !wellRechargeTimerRunning) {
-			isWellCharged = false;
+			_isWellCharged = false;
 
 			var i = 0;
 			wellRechargeTimer = StartTimer(() => {
 				_wellRechargeLevelDisplay.write(++i);
 
 				if (i == RECHARGE_TIME_MINUTES) {
-					isWellCharged = true;
+					_isWellCharged = true;
 					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
 					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
 				} 
 			}, ALL_TIMERS_INTERVAL_MILLI, wellRechargeTimerRunning);
 		} 
 	});
+}
 
-	_ecobeeCfhInput.watch((err, value) => {
-		if (value.toString() == 1) {
-			IncrementAndAddToDatabase(_ecobeeCfhCounterDisplay, _mapping.CFH_COUNTER);
-			EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-		} else {
-			DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-		} 
-	});
-
+function MonitorBoilerCallForGas() {
 	var boilerTimer;
 	var wellTimer;
 	var wellTimerRunning = false;
 	var columbiaTimer;
 	var columbiaTimerRunning = false;
-	// --TODO: Fix this hadouken
+
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
 			StopTimer(boilerTimer);
 			boilerTimer = StartTimer(() => {
 				_boilerCfgLed.turnOn();
-				if (isWellCharged) {
-					StopTimer(columbiaTimer, columbiaTimerRunning);
-					EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-					DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-					if (!wellTimerRunning) {
-						wellTimer = StartTimer(() => {
-							IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
-						}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
-					}
-				} else {
-					StopTimer(wellTimer, wellTimerRunning);
-					EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-					DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-					if (!columbiaTimerRunning) {
-						columbiaTimer = StartTimer(() => {
-							IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
-						}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
-					}
-				}
+				if (_isWellCharged) 
+					StopColumbiaAndStartWell();
+				else 
+					StopWellAndStartColumbia();
 			}, 100);
 		} else {
 			StopTimer(boilerTimer);
@@ -123,6 +102,39 @@ function StartInputMonitoring() {
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			_boilerCfgLed.turnOff();
 		}
+	});
+
+	function StopColumbiaAndStartWell() {
+		StopTimer(columbiaTimer, columbiaTimerRunning);
+		EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+		DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+		if (!wellTimerRunning) {
+			wellTimer = StartTimer(() => {
+				IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
+			}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
+		}
+	}
+
+	function StopWellAndStartColumbia() {
+		StopTimer(wellTimer, wellTimerRunning);
+		EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+		DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+		if (!columbiaTimerRunning) {
+			columbiaTimer = StartTimer(() => {
+				IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
+			}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
+		}
+	}
+}
+
+function MonitorEcobeeCallForHeat() {
+	_ecobeeCfhInput.watch((err, value) => {
+		if (value.toString() == 1) {
+			IncrementAndAddToDatabase(_ecobeeCfhCounterDisplay, _mapping.CFH_COUNTER);
+			EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+		} else {
+			DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+		} 
 	});
 }
 
