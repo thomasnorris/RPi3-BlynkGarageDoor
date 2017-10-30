@@ -1,7 +1,7 @@
 
-var _fs = require('fs'),
-	_csvWriter = require('csv-write-stream'),
-	_dto = require('./date-time-operations');
+var _fs = require('fs');
+var	_csvWriter = require('csv-write-stream');
+var	_dto = require('./date-time-operations');
 
 const DATA_PATH = __dirname + '/data/';
 const ARCHIVE_PATH = DATA_PATH + '/archive/';
