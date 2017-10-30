@@ -95,6 +95,7 @@
 						StartColumbiaStopWell();
 				}, 100);
 			} else {
+				StopBothColumbiaAndWell();
 				StopTimer(boilerTimer);
 				_boilerCfgLed.turnOff();
 				isCallForHeat = false;
@@ -102,6 +103,8 @@
 		});
 
 		function StopBothColumbiaAndWell() {
+			columbiaTimerRunning = false;
+			wellTimerRunning = false;
 			StopTimer(wellTimer, wellTimerRunning);
 			StopTimer(columbiaTimer, columbiaTimerRunning);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
@@ -109,24 +112,28 @@
 		}
 
 		function StartWellStopColumbia() {
-			StopTimer(columbiaTimer, columbiaTimerRunning);
+			columbiaTimerRunning = false;
+			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			if (!wellTimerRunning && isCallForHeat) {
+			if (!wellTimerRunning) {
+				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
-				}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
+				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
 
 		function StartColumbiaStopWell() {
-			StopTimer(wellTimer, wellTimerRunning);
+			wellTimerRunning = false;
+			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			if (!columbiaTimerRunning && isCallForHeat) {
+			if (!columbiaTimerRunning) {
+				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
-				}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
+				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
 
@@ -151,6 +158,7 @@
 		_wellPressureSwitchInput.watch((err, value) => {
 			if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
 				_isWellCharged = false;
+				wellRechargeTimerRunning = true;
 
 				var i = 0;
 				wellRechargeTimer = StartTimer(() => {
@@ -158,10 +166,11 @@
 
 					if (i === RECHARGE_TIME_MINUTES) {
 						_isWellCharged = true;
-						StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
+						wellRechargeTimerRunning = false;
+						StopTimer(wellRechargeTimer);
 						IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
 					} 
-				}, ALL_TIMERS_INTERVAL_MILLI, wellRechargeTimerRunning);
+				}, ALL_TIMERS_INTERVAL_MILLI);
 			} 
 		});
 	}
@@ -177,15 +186,11 @@
 		});
 	}
 
-	function StartTimer(functionToStart, loopTimeMilli, timerRunning) {
-		if (timerRunning)
-			timerRunning = true;
+	function StartTimer(functionToStart, loopTimeMilli) {
 		return setInterval(functionToStart, loopTimeMilli);
 	}
 
-	function StopTimer(timer, timerRunning) {
-		if (timerRunning)
-			timerRunning = false;
+	function StopTimer(timer) {
 		clearInterval(timer);
 	}
 
