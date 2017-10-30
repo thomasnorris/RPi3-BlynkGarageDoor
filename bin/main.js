@@ -7,9 +7,14 @@ var	blynkLibrary = require('blynk-library'),
 	_dbo = require('./database-operations'),
 	_dto = require('./date-time-operations');
 
-var	_vPinArr = [],
-	_vLedArr = [],
-	_manualOverrideButton = new _blynk.VirtualPin(0), 
+const RECHARGE_TIME_MINUTES = 5;
+const RECHARGE_INTERVAL_MILLI = 1000;
+const TIMER_INTERVAL_MILLI = 10000;
+const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
+const CRON_ARCHIVE_SCHEDULE = '0 0 * */1 *';
+
+// --Note: add new vPins, Leds, and Relays to the appropriate arrays in InitializeValues()
+var	_manualOverrideButton = new _blynk.VirtualPin(0), 
 	_manualColumbiaButton = new _blynk.VirtualPin(1), 
 	_manualWellButton = new _blynk.VirtualPin(2),
 	_wellRechargeLevelDisplay = new _blynk.VirtualPin(3), 
@@ -21,23 +26,13 @@ var	_vPinArr = [],
 	_ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9),
 	_ecobeeCfhLed = new _blynk.WidgetLED(10),
 	_boilerCfgLed = new _blynk.WidgetLED(11);
-_vPinArr.push(_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeLevelDisplay); // --No vPins from _mapping
-_vLedArr.push(_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed); // --All leds
 
-var _gpioArr = [],
-	_wellPressureSwitchInput = new _gpio(26, 'in', 'both'),
+var	_wellPressureSwitchInput = new _gpio(26, 'in', 'both'),
 	_boilerCfgInput = new _gpio(13, 'in', 'both'),
 	_ecobeeCfhInput = new _gpio(16, 'in', 'both'),
 	_columbiaValveRelayOutput = new _gpio(4, 'high'),
 	_wellValveRelayOutput = new _gpio(17, 'high'),
 	_boilerStartRelayOutput = new _gpio(27, 'high');
-_gpioArr.push(_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput); // --No input gpio
-
-const RECHARGE_TIME_MINUTES = 5;
-const RECHARGE_INTERVAL_MILLI = 1000;
-const TIMER_INTERVAL_MILLI = 10000;
-const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
-const CRON_ARCHIVE_SCHEDULE = '0 0 * */1 *';
 
 var _mapping = {
 	DATE: 'Date',
@@ -71,7 +66,7 @@ function StartInputMonitoring() {
 			var i = 0;
 			wellRechargeTimer = StartTimer(() => {
 				_wellRechargeLevelDisplay.write(++i);
-				
+
 				if (i == RECHARGE_TIME_MINUTES) {
 					isWellCharged = true;
 					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
@@ -176,13 +171,17 @@ function InitializeValues() {
 	_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 	_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 
-	_gpioArr.forEach((gpio) => {
-		gpio.writeSync(1);
+	var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeLevelDisplay]; // --No vPins from _mapping
+	var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
+	var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
+
+	relayArr.forEach((relay) => {
+		relay.writeSync(1);
 	});
-	_vPinArr.forEach((vPin) => {
+	vPinArr.forEach((vPin) => {
 		vPin.write(0);
 	});
-	_vLedArr.forEach((vLed) => {
+	vLedArr.forEach((vLed) => {
 		vLed.turnOff();
 	});
 }
