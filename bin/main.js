@@ -11,7 +11,7 @@ const RECHARGE_TIME_MINUTES = 5;
 const RECHARGE_INTERVAL_MILLI = 1000;
 const TIMER_INTERVAL_MILLI = 10000;
 const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
-const CRON_ARCHIVE_SCHEDULE = '0 0 * */1 *';
+const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
 // --Note: add new vPins, Leds, and Relays to the appropriate arrays in InitializeValues()
 var	_manualOverrideButton = new _blynk.VirtualPin(0), 
@@ -90,6 +90,7 @@ function StartInputMonitoring() {
 	var wellTimerRunning = false;
 	var columbiaTimer;
 	var columbiaTimerRunning = false;
+	// --TODO: Fix this hadouken
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
 			StopTimer(boilerTimer);
