@@ -1,7 +1,7 @@
 
 var _dbo = require('./database-operations');
 var	_schedule = require('node-schedule');
-var _rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
+var	_rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
 var	_dto = require('./date-time-operations');
 
 var _mapping = {
