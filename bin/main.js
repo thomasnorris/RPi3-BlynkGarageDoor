@@ -62,24 +62,22 @@ _blynk.on('connect', () => {
 function StartInputMonitoring() {
 	var isWellCharged = false;
 
-	var wellRechargeInterval;
-	var chargeInProgress = false;
+	var wellRechargeTimer;
+	var wellRechargeTimerRunning = false;
 	_wellPressureSwitchInput.watch((err, value) => {
-		if (value.toString() == 1 && !chargeInProgress) {
-			chargeInProgress = true;
+		if (value.toString() == 1 && !wellRechargeTimerRunning) {
 			isWellCharged = false;
 
 			var i = 0;
-			wellRechargeInterval = setInterval(() => {
+			wellRechargeTimer = StartTimer(() => {
 				if (i != RECHARGE_TIME_MINUTES)
 					_wellRechargeLevelDisplay.write(++i);
 				else {
 					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
+					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
 					isWellCharged = true;
-					chargeInProgress = false;
-					clearInterval(wellRechargeInterval);
 				} 
-			}, RECHARGE_INTERVAL_MILLI);
+			}, RECHARGE_INTERVAL_MILLI, wellRechargeTimerRunning);
 		} 
 	});
 
@@ -94,8 +92,8 @@ function StartInputMonitoring() {
 
 	var boilerTimer;
 	var wellTimer;
-	var columbiaTimer;
 	var wellTimerRunning = false;
+	var columbiaTimer;
 	var columbiaTimerRunning = false;
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
