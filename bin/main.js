@@ -97,6 +97,7 @@
 			} else {
 				StopTimer(boilerTimer);
 				_boilerCfgLed.turnOff();
+				isCallForHeat = false;
 			}
 		});
 
