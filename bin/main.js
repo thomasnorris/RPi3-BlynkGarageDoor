@@ -1,11 +1,11 @@
-
-var	blynkLibrary = require('blynk-library'),
-	blynkAuth = require('./blynk-auth').getAuth(),
-	_blynk = new blynkLibrary.Blynk(blynkAuth),
-	_gpio = require('onoff').Gpio,
-	_schedule = require('node-schedule'),
-	_dbo = require('./database-operations'),
-	_dto = require('./date-time-operations');
+	
+var	blynkLibrary = require('blynk-library');
+var	blynkAuth = require('./blynk-auth').getAuth();
+var	_blynk = new blynkLibrary.Blynk(blynkAuth);
+var	_gpio = require('onoff').Gpio;
+var	_schedule = require('node-schedule');
+var	_dbo = require('./database-operations');
+var	_dto = require('./date-time-operations');
 
 const RECHARGE_TIME_MINUTES = 5;
 const ALL_TIMERS_INTERVAL_MILLI = 1000;
@@ -13,25 +13,25 @@ const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
 // --Note: add new vPins, Leds, and Relays to the appropriate arrays in InitializeValues()
-var	_manualOverrideButton = new _blynk.VirtualPin(0), 
-	_manualColumbiaButton = new _blynk.VirtualPin(1), 
-	_manualWellButton = new _blynk.VirtualPin(2),
-	_wellRechargeLevelDisplay = new _blynk.VirtualPin(3), 
-	_wellRechargeCounterDisplay = new _blynk.VirtualPin(4),
-	_columbiaTimerDisplay = new _blynk.VirtualPin(5),
-	_usingColumbiaLed = new _blynk.WidgetLED(6),
-	_wellTimerDisplay = new _blynk.VirtualPin(7),
-	_usingWellLed = new _blynk.WidgetLED(8),
-	_ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9),
-	_ecobeeCfhLed = new _blynk.WidgetLED(10),
-	_boilerCfgLed = new _blynk.WidgetLED(11);
+var	_manualOverrideButton = new _blynk.VirtualPin(0); 
+var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
+var	_manualWellButton = new _blynk.VirtualPin(2);
+var	_wellRechargeLevelDisplay = new _blynk.VirtualPin(3); 
+var	_wellRechargeCounterDisplay = new _blynk.VirtualPin(4);
+var	_columbiaTimerDisplay = new _blynk.VirtualPin(5);
+var	_usingColumbiaLed = new _blynk.WidgetLED(6);
+var	_wellTimerDisplay = new _blynk.VirtualPin(7);
+var	_usingWellLed = new _blynk.WidgetLED(8);
+var	_ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9);
+var	_ecobeeCfhLed = new _blynk.WidgetLED(10);
+var	_boilerCfgLed = new _blynk.WidgetLED(11);
 
-var	_wellPressureSwitchInput = new _gpio(26, 'in', 'both'),
-	_boilerCfgInput = new _gpio(13, 'in', 'both'),
-	_ecobeeCfhInput = new _gpio(16, 'in', 'both'),
-	_columbiaValveRelayOutput = new _gpio(4, 'high'),
-	_wellValveRelayOutput = new _gpio(17, 'high'),
-	_boilerStartRelayOutput = new _gpio(27, 'high');
+var	_wellPressureSwitchInput = new _gpio(26, 'in', 'both');
+var	_boilerCfgInput = new _gpio(13, 'in', 'both');
+var	_ecobeeCfhInput = new _gpio(16, 'in', 'both');
+var	_columbiaValveRelayOutput = new _gpio(4, 'high');
+var	_wellValveRelayOutput = new _gpio(17, 'high');
+var	_boilerStartRelayOutput = new _gpio(27, 'high');
 
 var _mapping = {
 	DATE: 'Date',
@@ -71,7 +71,7 @@ function MonitorBoilerCallForHeatAndManualValveControls() {
 	ManualValveControl(_manualWellButton, StartWellStopColumbia, _manualColumbiaButton);
 
 	_manualOverrideButton.on('write', (value) => {
-		if (value.toString() == 1)
+		if (parseInt(value) === 1)
 			masterEnable = true
 		else {
 			masterEnable = false;
@@ -82,7 +82,7 @@ function MonitorBoilerCallForHeatAndManualValveControls() {
 	});
 
 	_boilerCfgInput.watch((err, value) => {
-		if (value.toString() == 1) {
+		if (parseInt(value) === 1) {
 			StopTimer(boilerTimer);
 			boilerTimer = StartTimer(() => {
 				_boilerCfgLed.turnOn();
@@ -129,7 +129,7 @@ function MonitorBoilerCallForHeatAndManualValveControls() {
 	function ManualValveControl(buttonToStart, startFunction, buttonToStop) {
 		buttonToStart.on('write', (value) => {
 			if (masterEnable) {
-				if (value.toString() == 1) {
+				if (parseInt(value) === 1) {
 					startFunction();
 					buttonToStop.write(0);
 				}
@@ -145,14 +145,14 @@ function MonitorWellPressureSwitch() {
 	var wellRechargeTimer;
 	var wellRechargeTimerRunning = false;
 	_wellPressureSwitchInput.watch((err, value) => {
-		if (value.toString() == 1 && !wellRechargeTimerRunning) {
+		if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
 			_isWellCharged = false;
 
 			var i = 0;
 			wellRechargeTimer = StartTimer(() => {
 				_wellRechargeLevelDisplay.write(++i);
 
-				if (i == RECHARGE_TIME_MINUTES) {
+				if (i === RECHARGE_TIME_MINUTES) {
 					_isWellCharged = true;
 					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
 					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
@@ -164,7 +164,7 @@ function MonitorWellPressureSwitch() {
 
 function MonitorEcobeeCallForHeat() {
 	_ecobeeCfhInput.watch((err, value) => {
-		if (value.toString() == 1) {
+		if (parseInt(value) === 1) {
 			IncrementAndAddToDatabase(_ecobeeCfhCounterDisplay, _mapping.CFH_COUNTER);
 			EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 		} else {
