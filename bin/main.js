@@ -92,50 +92,57 @@ function StartInputMonitoring() {
 		} 
 	});
 
-	var boilerInterval;
+	var boilerTimer;
+	var wellTimer;
+	var columbiaTimer;
 	var wellTimerRunning = false;
 	var columbiaTimerRunning = false;
-	var wellInterval;
-	var columbiaInterval;
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
-			clearInterval(boilerInterval);
-			boilerInterval = setInterval(() => {
+			StopTimer(boilerTimer);
+			boilerTimer = StartTimer(() => {
 				_boilerCfgLed.turnOn();
 				if (isWellCharged) {
-					clearInterval(columbiaInterval);
+					StopTimer(columbiaTimer, columbiaTimerRunning);
 					EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 					DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 					if (!wellTimerRunning) {
-						wellTimerRunning = true;
-						wellInterval = setInterval(() => {
+						wellTimer = StartTimer(() => {
 							IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
-						}, 1000);
+						}, 1000, wellTimerRunning);
 					}
 				} else {
-					clearInterval(wellInterval);
+					StopTimer(wellTimer, wellTimerRunning);
 					EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 					DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 					if (!columbiaTimerRunning) {
-						columbiaTimerRunning = true;
-						columbiaInterval = setInterval(() => {
+						columbiaTimer = StartTimer(() => {
 							IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
-						}, 1000);
+						}, 1000, columbiaTimerRunning);
 					}
 				}
 			}, 100);
-			
 		} else {
-			clearInterval(boilerInterval);
-			clearInterval(wellInterval);
-			clearInterval(columbiaInterval);
-			wellTimerRunning = false;
-			columbiaTimerRunning = false;
+			StopTimer(boilerTimer);
+			StopTimer(wellTimer, wellTimerRunning);
+			StopTimer(columbiaTimer, columbiaTimerRunning);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			_usingColumbiaLed.turnOff();
+			_boilerCfgLed.turnOff();
 		}
 	});
+}
+
+function StartTimer(functionToStart, loopTimeMilli, timerRunning) {
+	if (timerRunning)
+		timerRunning = true;
+	return setInterval(functionToStart, loopTimeMilli);
+}
+
+function StopTimer(timer, timerRunning) {
+	if (timerRunning)
+		timerRunning = false;
+	clearInterval(timer);
 }
 
 function EnableRelayAndLed(relay, led) {
