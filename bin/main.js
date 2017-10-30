@@ -62,7 +62,7 @@
 
 	function MonitorBoilerCallForHeatAndManualValveControls() {
 		var boilerTimer;
-		var isCallForHeat = false;
+		var isCallForGas = false;
 		var wellTimer;
 		var wellTimerRunning = false;
 		var columbiaTimer;
@@ -88,7 +88,7 @@
 				StopTimer(boilerTimer);
 				boilerTimer = StartTimer(() => {
 					_boilerCfgLed.turnOn();
-					isCallForHeat = true;
+					isCallForGas = true;
 					if (_isWellCharged) 
 						StartWellStopColumbia();
 					else 
@@ -98,7 +98,7 @@
 				StopBothColumbiaAndWell();
 				StopTimer(boilerTimer);
 				_boilerCfgLed.turnOff();
-				isCallForHeat = false;
+				isCallForGas = false;
 			}
 		});
 
@@ -116,7 +116,7 @@
 			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			if (!wellTimerRunning && isCallForHeat) {
+			if (!wellTimerRunning && isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
@@ -129,7 +129,7 @@
 			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			if (!columbiaTimerRunning && isCallForHeat) {
+			if (!columbiaTimerRunning && isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
