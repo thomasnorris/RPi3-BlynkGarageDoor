@@ -62,7 +62,14 @@ _blynk.on('connect', () => {
 		var masterEnable = false;
 
 		_manualOverrideButton.on('write', (value) => {
-			value.toString() == 1 ? masterEnable = true : masterEnable = false;
+			if (value.toString() == 1)
+				masterEnable = true
+			else {
+				masterEnable = false;
+				_manualColumbiaButton.write(0);
+				_manualWellButton.write(0);
+				StopBothColumbiaAndWell();
+			}
 		});
 
 		ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell);
