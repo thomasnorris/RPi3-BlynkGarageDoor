@@ -72,8 +72,8 @@ _blynk.on('connect', () => {
 			}
 		});
 
-		ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell);
-		ManualValveControl(_manualWellButton, StartWellStopColumbia);
+		ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell, _manualWellButton);
+		ManualValveControl(_manualWellButton, StartWellStopColumbi, _manualColumbiaButton);
 
 		_boilerCfgInput.watch((err, value) => {
 			if (value.toString() == 1) {
@@ -121,15 +121,17 @@ _blynk.on('connect', () => {
 			}
 		}
 
-		function ManualValveControl(button, startFunction) {
-			button.on('write', (value) => {
+		function ManualValveControl(buttonToStart, startFunction, buttonToStop) {
+			buttonToStart.on('write', (value) => {
 				if (masterEnable) {
-					if (value.toString() == 1)
+					if (value.toString() == 1) {
 						startFunction();
+						buttonToStop.write(0);
+					}
 					else
 						StopBothColumbiaAndWell();
 				} else
-					button.write(0);
+					buttonToStart.write(0);
 			});
 		}
 	});
