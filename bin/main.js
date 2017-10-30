@@ -116,7 +116,7 @@
 			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			if (!wellTimerRunning) {
+			if (!wellTimerRunning && isCallForHeat) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
@@ -129,7 +129,7 @@
 			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			if (!columbiaTimerRunning) {
+			if (!columbiaTimerRunning && isCallForHeat) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
