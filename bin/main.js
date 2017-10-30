@@ -70,12 +70,12 @@ function StartInputMonitoring() {
 
 			var i = 0;
 			wellRechargeTimer = StartTimer(() => {
-				if (i != RECHARGE_TIME_MINUTES)
-					_wellRechargeLevelDisplay.write(++i);
-				else {
-					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
-					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
+				_wellRechargeLevelDisplay.write(++i);
+				
+				if (i == RECHARGE_TIME_MINUTES) {
 					isWellCharged = true;
+					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
+					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
 				} 
 			}, RECHARGE_INTERVAL_MILLI, wellRechargeTimerRunning);
 		} 
