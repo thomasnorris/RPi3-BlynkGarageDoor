@@ -52,16 +52,14 @@ var _newData;
 _blynk.on('connect', () => {
 	_dbo.LoadDatabase(_mapping, (recentData) => {
 		_newData = recentData;
+
 		InitializeValues();
-		BlynkTriggerGpio(_manualColumbiaButton, _columbiaValveRelayOutput);
-		BlynkTriggerGpio(_manualWellButton, _wellValveRelayOutput);
 		StartInputMonitoring();
 		StartSchedules();
 	});
 });
 
 function StartInputMonitoring() {
-	var isEcobeeCfh = false;
 	var isWellCharged = false;
 
 	var wellRechargeInterval;
@@ -72,36 +70,25 @@ function StartInputMonitoring() {
 			isWellCharged = false;
 
 			var i = 0;
-			RechargeLoop();
-			wellRechargeInterval = setInterval(RechargeLoop, RECHARGE_INTERVAL_MILLI);
-		} //else if (value.toString() == 0 && isWellCharged) {
-			//_wellRechargeLevelDisplay.write(0);
-		//}
-
-		function RechargeLoop() {
-			if (i != RECHARGE_TIME_MINUTES)
-				_wellRechargeLevelDisplay.write(++i);
-			else {
-				_wellRechargeCounterDisplay.write(++_newData[_mapping.WELL_RECHARGE_COUNTER]);
-				_dbo.AddToDatabase(_newData);
-				isWellCharged = true;
-				chargeInProgress = false;
-				clearInterval(wellRechargeInterval);
-			} 
-		}
+			wellRechargeInterval = setInterval(() => {
+				if (i != RECHARGE_TIME_MINUTES)
+					_wellRechargeLevelDisplay.write(++i);
+				else {
+					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
+					isWellCharged = true;
+					chargeInProgress = false;
+					clearInterval(wellRechargeInterval);
+				} 
+			}, RECHARGE_INTERVAL_MILLI);
+		} 
 	});
 
 	_ecobeeCfhInput.watch((err, value) => {
 		if (value.toString() == 1) {
-			_ecobeeCfhCounterDisplay.write(++_newData[_mapping.CFH_COUNTER]);
-			_dbo.AddToDatabase(_newData);
-			_ecobeeCfhLed.turnOn();
-			isEcobeeCfh = true;
-			_boilerStartRelayOutput.writeSync(0);
+			IncrementAndAddToDatabase(_ecobeeCfhCounterDisplay, _mapping.CFH_COUNTER);
+			EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 		} else {
-			_ecobeeCfhLed.turnOff();
-			isEcobeeCfh = false;
-			_boilerStartRelayOutput.writeSync(1);
+			DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 		} 
 	});
 
@@ -115,26 +102,20 @@ function StartInputMonitoring() {
 				_boilerCfgLed.turnOn();
 				if (isWellCharged) {
 					clearInterval(columbiaInterval);
-					_wellValveRelayOutput.writeSync(0);
-					_usingWellLed.turnOn();
-					_columbiaValveRelayOutput.writeSync(1);
-					_usingColumbiaLed.turnOff();
+					EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+					DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 					if (wellInterval == null) {
 						wellInterval = setInterval(() => {
-							_wellTimerDisplay.write(_dto.MinutesAsHoursMins(++_newData[_mapping.WELL_TIMER]));
-							_dbo.AddToDatabase(_newData);
+							IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
 						}, 1000);
 					}
 				} else {
 					clearInterval(wellInterval);
-					_columbiaValveRelayOutput.writeSync(0);
-					_usingColumbiaLed.turnOn();
-					_wellValveRelayOutput.writeSync(1);
-					_usingWellLed.turnOff();
+					EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
+					DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 					if (columbiaInterval == null) {
 						columbiaInterval = setInterval(() => {
-							_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(++_newData[_mapping.COLUMBIA_TIMER]))
-							_dbo.AddToDatabase(_newData);
+							IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
 						}, 1000);
 					}
 				}
@@ -146,13 +127,29 @@ function StartInputMonitoring() {
 			clearInterval(columbiaInterval);
 			wellInterval = null;
 			columbiaInterval = null;
-			_boilerCfgLed.turnOff();
-			_usingWellLed.turnOff();
+			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
+			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			_usingColumbiaLed.turnOff();
-			_columbiaValveRelayOutput.writeSync(1);
-			_wellValveRelayOutput.writeSync(1);
 		}
 	});
+}
+
+function EnableRelayAndLed(relay, led) {
+	relay.writeSync(0);
+	led.turnOn();
+}
+
+function DisableRelayAndLed(relay, led) {
+	relay.writeSync(1);
+	led.turnOff();
+}
+
+function IncrementAndAddToDatabase(display, dataSection, needsFormatting) {
+	if (needsFormatting)
+		display.write(_dto.MinutesAsHoursMins(++_newData[dataSection]));
+	else
+		display.write(++_newData[dataSection]);
+	_dbo.AddToDatabase(_newData);
 }
 
 function StartSchedules() {
@@ -178,11 +175,5 @@ function InitializeValues() {
 	});
 	_vLedArr.forEach((vLed) => {
 		vLed.turnOff();
-	});
-}
-
-function BlynkTriggerGpio(trigger, gpio) {
-	trigger.on('write', (value) => {
-		value.toString() == 1 ? gpio.writeSync(0) : gpio.writeSync(1);
 	});
 }
