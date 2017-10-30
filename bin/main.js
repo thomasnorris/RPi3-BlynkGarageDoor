@@ -62,6 +62,7 @@
 
 	function MonitorBoilerCallForHeatAndManualValveControls() {
 		var boilerTimer;
+		var isCallForHeat = false;
 		var wellTimer;
 		var wellTimerRunning = false;
 		var columbiaTimer;
@@ -87,6 +88,7 @@
 				StopTimer(boilerTimer);
 				boilerTimer = StartTimer(() => {
 					_boilerCfgLed.turnOn();
+					isCallForHeat = true;
 					if (_isWellCharged) 
 						StartWellStopColumbia();
 					else 
@@ -109,7 +111,7 @@
 			StopTimer(columbiaTimer, columbiaTimerRunning);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			if (!wellTimerRunning) {
+			if (!wellTimerRunning && isCallForHeat) {
 				wellTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
 				}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
@@ -120,7 +122,7 @@
 			StopTimer(wellTimer, wellTimerRunning);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			if (!columbiaTimerRunning) {
+			if (!columbiaTimerRunning && isCallForHeat) {
 				columbiaTimer = StartTimer(() => {
 					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
 				}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
