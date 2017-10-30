@@ -93,8 +93,10 @@ function StartInputMonitoring() {
 	});
 
 	var boilerInterval;
-	var wellInterval = null;
-	var columbiaInterval = null;
+	var wellTimerRunning = false;
+	var columbiaTimerRunning = false;
+	var wellInterval;
+	var columbiaInterval;
 	_boilerCfgInput.watch((err, value) => {
 		if (value.toString() == 1) {
 			clearInterval(boilerInterval);
@@ -104,7 +106,8 @@ function StartInputMonitoring() {
 					clearInterval(columbiaInterval);
 					EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 					DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-					if (wellInterval == null) {
+					if (!wellTimerRunning) {
+						wellTimerRunning = true;
 						wellInterval = setInterval(() => {
 							IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
 						}, 1000);
@@ -113,7 +116,8 @@ function StartInputMonitoring() {
 					clearInterval(wellInterval);
 					EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 					DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-					if (columbiaInterval == null) {
+					if (!columbiaTimerRunning) {
+						columbiaTimerRunning = true;
 						columbiaInterval = setInterval(() => {
 							IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
 						}, 1000);
@@ -125,8 +129,8 @@ function StartInputMonitoring() {
 			clearInterval(boilerInterval);
 			clearInterval(wellInterval);
 			clearInterval(columbiaInterval);
-			wellInterval = null;
-			columbiaInterval = null;
+			wellTimerRunning = false;
+			columbiaTimerRunning = false;
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			_usingColumbiaLed.turnOff();
