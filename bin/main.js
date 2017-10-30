@@ -73,7 +73,7 @@ _blynk.on('connect', () => {
 		});
 
 		ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell, _manualWellButton);
-		ManualValveControl(_manualWellButton, StartWellStopColumbi, _manualColumbiaButton);
+		ManualValveControl(_manualWellButton, StartWellStopColumbia, _manualColumbiaButton);
 
 		_boilerCfgInput.watch((err, value) => {
 			if (value.toString() == 1) {
