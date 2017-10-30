@@ -8,8 +8,7 @@ var	blynkLibrary = require('blynk-library'),
 	_dto = require('./date-time-operations');
 
 const RECHARGE_TIME_MINUTES = 5;
-const RECHARGE_INTERVAL_MILLI = 1000;
-const TIMER_INTERVAL_MILLI = 10000;
+const ALL_TIMERS_INTERVAL_MILLI = 1000;
 const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
@@ -72,7 +71,7 @@ function StartInputMonitoring() {
 					StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
 					IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
 				} 
-			}, RECHARGE_INTERVAL_MILLI, wellRechargeTimerRunning);
+			}, ALL_TIMERS_INTERVAL_MILLI, wellRechargeTimerRunning);
 		} 
 	});
 
@@ -103,7 +102,7 @@ function StartInputMonitoring() {
 					if (!wellTimerRunning) {
 						wellTimer = StartTimer(() => {
 							IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
-						}, 1000, wellTimerRunning);
+						}, ALL_TIMERS_INTERVAL_MILLI, wellTimerRunning);
 					}
 				} else {
 					StopTimer(wellTimer, wellTimerRunning);
@@ -112,7 +111,7 @@ function StartInputMonitoring() {
 					if (!columbiaTimerRunning) {
 						columbiaTimer = StartTimer(() => {
 							IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
-						}, 1000, columbiaTimerRunning);
+						}, ALL_TIMERS_INTERVAL_MILLI, columbiaTimerRunning);
 					}
 				}
 			}, 100);
