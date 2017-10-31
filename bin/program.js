@@ -49,6 +49,7 @@
 	// --Start main function
 	_blynk.on('connect', () => {
 		_dbo.LoadDatabase(_mapping, (recentData) => {
+			console.log(recentData);
 			_newData = recentData;
 
 			// --All functions split up for readability
@@ -80,11 +81,11 @@
 				_isWellCharged = false;
 				wellRechargeTimerRunning = true;
 
-				var i = 0;
+				_newData[_mapping.WELL_RECHARGE_TIMER] = 0;
 				wellRechargeTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++i);
+					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++_newData[_mapping.WELL_RECHARGE_TIMER]);
 
-					if (i === RECHARGE_TIME_MINUTES) {
+					if (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
 						_isWellCharged = true;
 						wellRechargeTimerRunning = false;
 						StopTimer(wellRechargeTimer);
@@ -229,7 +230,7 @@
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
 
-		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeTimerDisplay]; // --No vPins from _mapping
+		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton]; // --No vPins from _mapping
 		var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
 		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
 
