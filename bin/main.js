@@ -17,7 +17,7 @@
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
 	var	_manualWellButton = new _blynk.VirtualPin(2);
-	var	_wellRechargeLevelDisplay = new _blynk.VirtualPin(3); 
+	var	_wellRechargeTimerDisplay = new _blynk.VirtualPin(3); 
 	var	_wellRechargeCounterDisplay = new _blynk.VirtualPin(4);
 	var	_columbiaTimerDisplay = new _blynk.VirtualPin(5);
 	var	_usingColumbiaLed = new _blynk.WidgetLED(6);
@@ -37,6 +37,7 @@
 	var _mapping = {
 		DATE: 'Date',
 		WELL_RECHARGE_COUNTER: 'Recharge Counter',
+		WELL_RECHARGE_TIMER: 'Recharge Timer',
 		COLUMBIA_TIMER: 'Columbia Timer',
 		WELL_TIMER: 'Well Timer',
 		CFH_COUNTER : 'Call For Heat Counter'
@@ -119,7 +120,7 @@
 			if (!wellTimerRunning && isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
-					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
+					FormatAndAddToDatabase(_wellTimerDisplay, ++_newData[_mapping.WELL_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -132,7 +133,7 @@
 			if (!columbiaTimerRunning && isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
-					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
+					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_newData[_mapping.COLUMBIA_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -162,13 +163,13 @@
 
 				var i = 0;
 				wellRechargeTimer = StartTimer(() => {
-					_wellRechargeLevelDisplay.write(++i);
+					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++i);
 
 					if (i === RECHARGE_TIME_MINUTES) {
 						_isWellCharged = true;
 						wellRechargeTimerRunning = false;
 						StopTimer(wellRechargeTimer);
-						IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
+						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					} 
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			} 
@@ -178,7 +179,7 @@
 	function MonitorEcobeeCallForHeat() {
 		_ecobeeCfhInput.watch((err, value) => {
 			if (parseInt(value) === 1) {
-				IncrementAndAddToDatabase(_ecobeeCfhCounterDisplay, _mapping.CFH_COUNTER);
+				FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} else {
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
@@ -204,11 +205,11 @@
 		led.turnOff();
 	}
 
-	function IncrementAndAddToDatabase(display, dataSection, needsFormatting) {
+	function FormatAndAddToDatabase(display, dataToAdd, needsFormatting) {
 		if (needsFormatting)
-			display.write(_dto.MinutesAsHoursMins(++_newData[dataSection]));
+			display.write(_dto.MinutesAsHoursMins(dataToAdd));
 		else
-			display.write(++_newData[dataSection]);
+			display.write(dataToAdd);
 		_dbo.AddToDatabase(_newData);
 	}
 
@@ -226,8 +227,9 @@
 		_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
+		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
 
-		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeLevelDisplay]; // --No vPins from _mapping
+		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeTimerDisplay]; // --No vPins from _mapping
 		var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
 		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
 
