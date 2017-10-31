@@ -73,8 +73,7 @@
 	}
 
 	function MonitorWellPressureSwitch() {
-		_isWellCharged = (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
-		console.log(_isWellCharged);
+		_isWellCharged = (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
 		
 		var wellRechargeTimer;
 		var wellRechargeTimerRunning = false;
