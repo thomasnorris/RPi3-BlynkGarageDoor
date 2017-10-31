@@ -19,7 +19,7 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	_newData = recentData;
 	
 	Fill(() => {
-		console.log('Files created with dummy data.\nEnter \"a\" to run a test archive.\nEnter \"e\" to exit.');
+		console.log('Files created with dummy data.\nEnter \"a\" to run a test archive.\nPress \"enter\" to exit.');
 		_rl.on('line', (input) => {
 			if (input == 'a') {
 				_dbo.CreateArchives();
