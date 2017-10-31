@@ -7,6 +7,7 @@ var	_dto = require('./date-time-operations');
 var _mapping = {
 	DATE: 'Date',
 	WELL_RECHARGE_COUNTER: 'Recharge Counter',
+	WELL_RECHARGE_TIMER: 'Recharge Timer',
 	COLUMBIA_TIMER: 'Columbia Timer',
 	WELL_TIMER: 'Well Timer',
 	CFH_COUNTER : 'Call For Heat Counter'
@@ -41,6 +42,7 @@ function Fill(callback) {
 			++_newData[_mapping.COLUMBIA_TIMER];
 			--_newData[_mapping.WELL_TIMER];
 			_newData[_mapping.CFH_COUNTER] = Math.floor(Math.random() * (max - 1) + i);
+			_newData[_mapping.WELL_RECHARGE_TIMER] = --_newData[_mapping.CFH_COUNTER];
 			_dbo.AddToDatabase(_newData);
 			_dbo.WriteToCsv();
 			i++;
