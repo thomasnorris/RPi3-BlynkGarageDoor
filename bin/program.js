@@ -8,7 +8,7 @@
 	var	_dbo = require('./database-operations');
 	var	_dto = require('./date-time-operations');
 
-	const RECHARGE_TIME_MINUTES = 90;
+	const RECHARGE_TIME_MINUTES = 5;
 	const ALL_TIMERS_INTERVAL_MILLI = 1000;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
@@ -44,7 +44,7 @@
 	}
 
 	var _newData;
-	var _isWellCharged = false;
+	var _isWellCharged;
 
 	// --Start main function
 	_blynk.on('connect', () => {
@@ -73,6 +73,9 @@
 	}
 
 	function MonitorWellPressureSwitch() {
+		_isWellCharged = (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
+		console.log(_isWellCharged);
+		
 		var wellRechargeTimer;
 		var wellRechargeTimerRunning = false;
 		_wellPressureSwitchInput.watch((err, value) => {
