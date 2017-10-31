@@ -63,8 +63,8 @@ var _outerFunc = module.exports = {
 			var csvData = [];
 			Object.keys(_data).forEach((key) => {
 				tempHeaders.push(key);
-				// --Pushing empty array because something has to be written on creation
-				csvData.push([]);
+				// --Pushing an empty character because something has to be written on creation
+				csvData.push('');
 			});
 			_outerFunc.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
 		}
