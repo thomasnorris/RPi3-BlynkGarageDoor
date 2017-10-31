@@ -1,7 +1,7 @@
 
 (function() {
 	var	blynkLibrary = require('blynk-library');
-	var	blynkAuth = require('./blynk-auth').getAuth();
+	var	blynkAuth = require('./blynk-auth').GetAuth();
 	var	_blynk = new blynkLibrary.Blynk(blynkAuth);
 	var	_gpio = require('onoff').Gpio;
 	var	_schedule = require('node-schedule');
