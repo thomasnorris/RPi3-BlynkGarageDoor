@@ -49,7 +49,6 @@
 	// --Start main function
 	_blynk.on('connect', () => {
 		_dbo.LoadDatabase(_mapping, (recentData) => {
-			console.log(recentData);
 			_newData = recentData;
 
 			// --All functions split up for readability
