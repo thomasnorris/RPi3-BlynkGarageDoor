@@ -30,6 +30,7 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
+			// --Stats will be false if the db file is not found, and a new db and csv will be created
 			if (!stats) {
 				_fs.openSync(_dbPathWithName, 'w');
 				_fs.openSync(_csvPathWithName, 'w');
@@ -63,8 +64,8 @@ var _outerFunc = module.exports = {
 			var csvData = [];
 			Object.keys(_data).forEach((key) => {
 				tempHeaders.push(key);
-				// --Pushing empty array because something has to be written on creation
-				csvData.push([]);
+				// --Pushing an empty character because something has to be written on creation
+				csvData.push('');
 			});
 			_outerFunc.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
 		}

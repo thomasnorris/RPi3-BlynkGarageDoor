@@ -1,7 +1,7 @@
 
 (function() {
 	var	blynkLibrary = require('blynk-library');
-	var	blynkAuth = require('./blynk-auth').getAuth();
+	var	blynkAuth = require('./blynk-auth').GetAuth();
 	var	_blynk = new blynkLibrary.Blynk(blynkAuth);
 	var	_gpio = require('onoff').Gpio;
 	var	_schedule = require('node-schedule');
@@ -9,7 +9,7 @@
 	var	_dto = require('./date-time-operations');
 
 	const RECHARGE_TIME_MINUTES = 90;
-	const ALL_TIMERS_INTERVAL_MILLI = 60000;
+	const ALL_TIMERS_INTERVAL_MILLI = 1000;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
@@ -17,7 +17,7 @@
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
 	var	_manualWellButton = new _blynk.VirtualPin(2);
-	var	_wellRechargeLevelDisplay = new _blynk.VirtualPin(3); 
+	var	_wellRechargeTimerDisplay = new _blynk.VirtualPin(3); 
 	var	_wellRechargeCounterDisplay = new _blynk.VirtualPin(4);
 	var	_columbiaTimerDisplay = new _blynk.VirtualPin(5);
 	var	_usingColumbiaLed = new _blynk.WidgetLED(6);
@@ -37,6 +37,7 @@
 	var _mapping = {
 		DATE: 'Date',
 		WELL_RECHARGE_COUNTER: 'Recharge Counter',
+		WELL_RECHARGE_TIMER: 'Recharge Timer',
 		COLUMBIA_TIMER: 'Columbia Timer',
 		WELL_TIMER: 'Well Timer',
 		CFH_COUNTER : 'Call For Heat Counter'
@@ -48,6 +49,7 @@
 	// --Start main function
 	_blynk.on('connect', () => {
 		_dbo.LoadDatabase(_mapping, (recentData) => {
+			console.log(recentData);
 			_newData = recentData;
 
 			// --All functions split up for readability
@@ -55,12 +57,46 @@
 			StartSchedules();
 			MonitorEcobeeCallForHeat();
 			MonitorWellPressureSwitch();
-			MonitorBoilerCallForHeatAndManualValveControls();
+			MonitorBoilerAndManualValveControl();
 		});
 	});
 	// --End main function
 
-	function MonitorBoilerCallForHeatAndManualValveControls() {
+	function MonitorEcobeeCallForHeat() {
+		_ecobeeCfhInput.watch((err, value) => {
+			if (parseInt(value) === 1) {
+				FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
+				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+			} else {
+				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+			} 
+		});
+	}
+
+	function MonitorWellPressureSwitch() {
+		var wellRechargeTimer;
+		var wellRechargeTimerRunning = false;
+		_wellPressureSwitchInput.watch((err, value) => {
+			if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
+				_isWellCharged = false;
+				wellRechargeTimerRunning = true;
+
+				_newData[_mapping.WELL_RECHARGE_TIMER] = 0;
+				wellRechargeTimer = StartTimer(() => {
+					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++_newData[_mapping.WELL_RECHARGE_TIMER]);
+
+					if (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
+						_isWellCharged = true;
+						wellRechargeTimerRunning = false;
+						StopTimer(wellRechargeTimer);
+						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+					} 
+				}, ALL_TIMERS_INTERVAL_MILLI);
+			} 
+		});
+	}
+
+	function MonitorBoilerAndManualValveControl() {
 		var boilerTimer;
 		var isCallForGas = false;
 		var wellTimer;
@@ -119,7 +155,7 @@
 			if (!wellTimerRunning && isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
-					IncrementAndAddToDatabase(_wellTimerDisplay, _mapping.WELL_TIMER, true);
+					FormatAndAddToDatabase(_wellTimerDisplay, ++_newData[_mapping.WELL_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -132,7 +168,7 @@
 			if (!columbiaTimerRunning && isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
-					IncrementAndAddToDatabase(_columbiaTimerDisplay, _mapping.COLUMBIA_TIMER, true);
+					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_newData[_mapping.COLUMBIA_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -150,40 +186,6 @@
 					buttonToStart.write(0);
 			});
 		}
-	}
-
-	function MonitorWellPressureSwitch() {
-		var wellRechargeTimer;
-		var wellRechargeTimerRunning = false;
-		_wellPressureSwitchInput.watch((err, value) => {
-			if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
-				_isWellCharged = false;
-				wellRechargeTimerRunning = true;
-
-				var i = 0;
-				wellRechargeTimer = StartTimer(() => {
-					_wellRechargeLevelDisplay.write(++i);
-
-					if (i === RECHARGE_TIME_MINUTES) {
-						_isWellCharged = true;
-						wellRechargeTimerRunning = false;
-						StopTimer(wellRechargeTimer);
-						IncrementAndAddToDatabase(_wellRechargeCounterDisplay, _mapping.WELL_RECHARGE_COUNTER);
-					} 
-				}, ALL_TIMERS_INTERVAL_MILLI);
-			} 
-		});
-	}
-
-	function MonitorEcobeeCallForHeat() {
-		_ecobeeCfhInput.watch((err, value) => {
-			if (parseInt(value) === 1) {
-				IncrementAndAddToDatabase(_ecobeeCfhCounterDisplay, _mapping.CFH_COUNTER);
-				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-			} else {
-				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-			} 
-		});
 	}
 
 	function StartTimer(functionToStart, loopTimeMilli) {
@@ -204,11 +206,11 @@
 		led.turnOff();
 	}
 
-	function IncrementAndAddToDatabase(display, dataSection, needsFormatting) {
+	function FormatAndAddToDatabase(display, dataToAdd, needsFormatting) {
 		if (needsFormatting)
-			display.write(_dto.MinutesAsHoursMins(++_newData[dataSection]));
+			display.write(_dto.MinutesAsHoursMins(dataToAdd));
 		else
-			display.write(++_newData[dataSection]);
+			display.write(dataToAdd);
 		_dbo.AddToDatabase(_newData);
 	}
 
@@ -226,8 +228,9 @@
 		_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
+		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
 
-		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton, _wellRechargeLevelDisplay]; // --No vPins from _mapping
+		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton]; // --No vPins from _mapping
 		var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
 		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
 

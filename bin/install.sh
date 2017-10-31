@@ -20,7 +20,7 @@ sudo npm install
 echo -e "\n${GREEN}Install is complete!${NC}\nEnter your ${GREEN}Blynk Auth Token${NC}. This will be in an email from Blynk."
 read authToken
 
-blynkAuthTemplate="module.exports = { getAuth: function() { return \"$authToken\"; } }"
+blynkAuthTemplate="module.exports = { GetAuth: function() { return \"$authToken\"; } }"
 echo "$blynkAuthTemplate" > blynk-auth.js
 
 sudo chown pi -R $PWD
