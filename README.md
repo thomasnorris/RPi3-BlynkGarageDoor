@@ -6,3 +6,9 @@
   - `sudo git clone https://github.com/thomasnorris/RPi3-BoilerControl.git && cd RPi3-BoilerControl/bin && chmod +x install.sh`
 - Run the install script:
   - `./install.sh`
+
+## JavaScript Library References
+- [blynk-library-js](https://github.com/vshymanskyy/blynk-library-js) - Wrapper for Blynk
+- [onoff](https://github.com/fivdi/onoff) - Wrapper for GPIO control
+- [node-schedule](https://github.com/node-schedule/node-schedule) - CRON-like event scheduling
+- [csv-write-stream](https://github.com/maxogden/csv-write-stream) - Easy CSV creation
