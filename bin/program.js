@@ -56,12 +56,46 @@
 			StartSchedules();
 			MonitorEcobeeCallForHeat();
 			MonitorWellPressureSwitch();
-			MonitorBoilerCallForHeatAndManualValveControls();
+			MonitorBoilerAndManualValveControl();
 		});
 	});
 	// --End main function
 
-	function MonitorBoilerCallForHeatAndManualValveControls() {
+	function MonitorEcobeeCallForHeat() {
+		_ecobeeCfhInput.watch((err, value) => {
+			if (parseInt(value) === 1) {
+				FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
+				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+			} else {
+				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+			} 
+		});
+	}
+
+	function MonitorWellPressureSwitch() {
+		var wellRechargeTimer;
+		var wellRechargeTimerRunning = false;
+		_wellPressureSwitchInput.watch((err, value) => {
+			if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
+				_isWellCharged = false;
+				wellRechargeTimerRunning = true;
+
+				var i = 0;
+				wellRechargeTimer = StartTimer(() => {
+					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++i);
+
+					if (i === RECHARGE_TIME_MINUTES) {
+						_isWellCharged = true;
+						wellRechargeTimerRunning = false;
+						StopTimer(wellRechargeTimer);
+						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+					} 
+				}, ALL_TIMERS_INTERVAL_MILLI);
+			} 
+		});
+	}
+
+	function MonitorBoilerAndManualValveControl() {
 		var boilerTimer;
 		var isCallForGas = false;
 		var wellTimer;
@@ -151,40 +185,6 @@
 					buttonToStart.write(0);
 			});
 		}
-	}
-
-	function MonitorWellPressureSwitch() {
-		var wellRechargeTimer;
-		var wellRechargeTimerRunning = false;
-		_wellPressureSwitchInput.watch((err, value) => {
-			if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
-				_isWellCharged = false;
-				wellRechargeTimerRunning = true;
-
-				var i = 0;
-				wellRechargeTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++i);
-
-					if (i === RECHARGE_TIME_MINUTES) {
-						_isWellCharged = true;
-						wellRechargeTimerRunning = false;
-						StopTimer(wellRechargeTimer);
-						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_newData[_mapping.WELL_RECHARGE_COUNTER]);
-					} 
-				}, ALL_TIMERS_INTERVAL_MILLI);
-			} 
-		});
-	}
-
-	function MonitorEcobeeCallForHeat() {
-		_ecobeeCfhInput.watch((err, value) => {
-			if (parseInt(value) === 1) {
-				FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
-				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-			} else {
-				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-			} 
-		});
 	}
 
 	function StartTimer(functionToStart, loopTimeMilli) {
