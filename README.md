@@ -6,6 +6,8 @@
   - `sudo git clone https://github.com/thomasnorris/RPi3-BoilerControl.git && cd RPi3-BoilerControl/bin && chmod +x install.sh`
 - Run the install script:
   - `./install.sh`
+- Start the program with pm2
+  - `pm2 start program.js --name BoilerControl`
 
 ## JavaScript Library References
 - [blynk-library-js](https://github.com/vshymanskyy/blynk-library-js) - Wrapper for Blynk
