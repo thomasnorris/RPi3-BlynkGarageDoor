@@ -8,8 +8,8 @@
 	var	_dbo = require('./database-operations');
 	var	_dto = require('./date-time-operations');
 
-	const RECHARGE_TIME_MINUTES = 5;
-	const ALL_TIMERS_INTERVAL_MILLI = 1000;
+	const RECHARGE_TIME_MINUTES = 90;
+	const ALL_TIMERS_INTERVAL_MILLI = 60000;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
