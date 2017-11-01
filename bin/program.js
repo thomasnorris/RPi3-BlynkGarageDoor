@@ -116,8 +116,8 @@
 		var columbiaTimerRunning = false;
 		var masterEnable = false;
 
-		ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell, _manualWellButton);
-		ManualValveControl(_manualWellButton, StartWellStopColumbia, _manualColumbiaButton);
+		ManualColumbiaValveControl();
+		ManualWellValveControl();
 
 		_manualOverrideButton.on('write', (value) => {
 			if (parseInt(value) === 1)
@@ -187,17 +187,31 @@
 			}
 		}
 
-		function ManualValveControl(buttonToStart, startFunction, buttonToStop) {
-			buttonToStart.on('write', (value) => {
+		function ManualColumbiaValveControl() {
+			_manualColumbiaButton.on('write', (value) => {
 				if (masterEnable) {
 					if (parseInt(value) === 1) {
-						startFunction();
-						buttonToStop.write(0);
+						StartColumbiaStopWell();
+						_manualWellButton.write(0);
 					}
 					else
 						StopBothColumbiaAndWell();
 				} else
-					buttonToStart.write(0);
+					_manualColumbiaButton.write(0);
+			});
+		}
+
+		function ManualWellValveControl() {
+			_manualWellButton.on('write', (value) => {
+				if (masterEnable) {
+					if (parseInt(value) === 1) {
+						StartWellStopColumbia();
+						_manualColumbiaButton.write(0);
+					}
+					else
+						StopBothColumbiaAndWell();
+				} else
+					_manualWellButton.write(0);
 			});
 		}
 	}
