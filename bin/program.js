@@ -9,12 +9,11 @@
 	var	_dto = require('./date-time-operations');
 
 	const RECHARGE_TIME_MINUTES = 90;
-	const ALL_TIMERS_INTERVAL_MILLI = 60000;
+	const ALL_TIMERS_INTERVAL_MILLI = 1000;
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
-	// --Note: add new vPins, Leds, and Relays to the appropriate arrays in InitializeValues()
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
 	var	_manualWellButton = new _blynk.VirtualPin(2);
@@ -112,8 +111,10 @@
 		var isCallForGas = false;
 		var wellTimer;
 		var wellTimerRunning = false;
+		var wellManualValve = false;
 		var columbiaTimer;
 		var columbiaTimerRunning = false;
+		var columbiaManualValve = false;
 		var masterEnable = false;
 
 		ManualColumbiaValveControl();
@@ -132,23 +133,25 @@
 
 		var started = false;
 		StartTimer(() => {
-			if (_boilerCfgInput.readSync() === 1 && !started) {
-				started = true
-				StopTimer(boilerTimer);
-				boilerTimer = StartTimer(() => {
-					_boilerCfgLed.turnOn();
-					isCallForGas = true;
-					if (_isWellCharged) 
-						StartWellStopColumbia();
-					else 
-						StartColumbiaStopWell();
-				}, 100);
-			} else if (_boilerCfgInput.readSync() === 0) {
-				started = false;
-				StopBothColumbiaAndWell();
-				StopTimer(boilerTimer);
-				_boilerCfgLed.turnOff();
-				isCallForGas = false;
+			if (!columbiaManualValve && !wellManualValve) {
+				if (_boilerCfgInput.readSync() === 1 && !started) {
+					started = true
+					StopTimer(boilerTimer);
+					boilerTimer = StartTimer(() => {
+						_boilerCfgLed.turnOn();
+						isCallForGas = true;
+						if (_isWellCharged) 
+							StartWellStopColumbia();
+						else 
+							StartColumbiaStopWell();
+					}, 100);
+				} else if (_boilerCfgInput.readSync() === 0) {
+					started = false;
+					StopBothColumbiaAndWell();
+					StopTimer(boilerTimer);
+					_boilerCfgLed.turnOff();
+					isCallForGas = false;
+				}
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
 
@@ -191,11 +194,14 @@
 			_manualColumbiaButton.on('write', (value) => {
 				if (masterEnable) {
 					if (parseInt(value) === 1) {
+						columbiaManualValve = true;
 						StartColumbiaStopWell();
 						_manualWellButton.write(0);
 					}
-					else
+					else {
+						columbiaManualValve = false;
 						StopBothColumbiaAndWell();
+					}
 				} else
 					_manualColumbiaButton.write(0);
 			});
@@ -205,11 +211,14 @@
 			_manualWellButton.on('write', (value) => {
 				if (masterEnable) {
 					if (parseInt(value) === 1) {
+						wellManualValve = true;
 						StartWellStopColumbia();
 						_manualColumbiaButton.write(0);
 					}
-					else
+					else {
+						wellManualValve = false;
 						StopBothColumbiaAndWell();
+					}
 				} else
 					_manualWellButton.write(0);
 			});
@@ -257,15 +266,5 @@
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
-
-		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton]; // --No vPins from _mapping
-		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
-
-		vPinArr.forEach((vPin) => {
-			vPin.write(0);
-		});
-		vLedArr.forEach((vLed) => {
-			vLed.turnOff();
-		});
 	}
 })();
