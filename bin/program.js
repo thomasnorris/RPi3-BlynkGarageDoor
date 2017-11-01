@@ -14,7 +14,6 @@
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
-	// --Note: add new vPins, Leds, and Relays to the appropriate arrays in InitializeValues()
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
 	var	_manualWellButton = new _blynk.VirtualPin(2);
@@ -267,15 +266,5 @@
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
-
-		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton]; // --No vPins from _mapping
-		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
-
-		vPinArr.forEach((vPin) => {
-			vPin.write(0);
-		});
-		vLedArr.forEach((vLed) => {
-			vLed.turnOff();
-		});
 	}
 })();
