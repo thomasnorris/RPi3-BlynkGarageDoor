@@ -8,8 +8,8 @@
 	var	_dbo = require('./database-operations');
 	var	_dto = require('./date-time-operations');
 
-	const RECHARGE_TIME_MINUTES = 90;
-	const ALL_TIMERS_INTERVAL_MILLI = 60000;
+	const RECHARGE_TIME_MINUTES = 10;
+	const ALL_TIMERS_INTERVAL_MILLI = 1000;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
@@ -62,14 +62,19 @@
 	// --End main function
 
 	function MonitorEcobeeCallForHeat() {
-		_ecobeeCfhInput.watch((err, value) => {
-			if (parseInt(value) === 1) {
-				FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
+		var logged = true;
+		StartTimer(() => {
+			if (_ecobeeCfhInput.readSync() === 1) {
+				if (!logged) {
+					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
+					logged = true;
+				}
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} else {
+				logged = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} 
-		});
+		}, 50);
 	}
 
 	function MonitorWellPressureSwitch() {
@@ -77,24 +82,28 @@
 		
 		var wellRechargeTimer;
 		var wellRechargeTimerRunning = false;
-		_wellPressureSwitchInput.watch((err, value) => {
-			if (parseInt(value) === 1 && !wellRechargeTimerRunning) {
+		StartTimer(() => {
+			if (_wellPressureSwitchInput.readSync() === 1 && !wellRechargeTimerRunning && _newData[_mapping.WELL_RECHARGE_TIMER] !== RECHARGE_TIME_MINUTES) {
 				_isWellCharged = false;
 				wellRechargeTimerRunning = true;
 
-				_newData[_mapping.WELL_RECHARGE_TIMER] = 0;
 				wellRechargeTimer = StartTimer(() => {
 					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++_newData[_mapping.WELL_RECHARGE_TIMER]);
 
 					if (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
 						_isWellCharged = true;
-						wellRechargeTimerRunning = false;
 						StopTimer(wellRechargeTimer);
 						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_newData[_mapping.WELL_RECHARGE_COUNTER]);
 					} 
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			} 
-		});
+			else if (_wellPressureSwitchInput.readSync() === 0) {
+				if (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
+					_newData[_mapping.WELL_RECHARGE_TIMER] = 0;
+				StopTimer(wellRechargeTimer);
+				wellRechargeTimerRunning = false;
+			}
+		}, 50);
 	}
 
 	function MonitorBoilerAndManualValveControl() {
@@ -120,8 +129,10 @@
 			}
 		});
 
-		_boilerCfgInput.watch((err, value) => {
-			if (parseInt(value) === 1) {
+		var started = false;
+		StartTimer(() => {
+			if (_boilerCfgInput.readSync() === 1 && !started) {
+				started = true
 				StopTimer(boilerTimer);
 				boilerTimer = StartTimer(() => {
 					_boilerCfgLed.turnOn();
@@ -131,13 +142,14 @@
 					else 
 						StartColumbiaStopWell();
 				}, 100);
-			} else {
+			} else if (_boilerCfgInput.readSync() === 0) {
+				started = false;
 				StopBothColumbiaAndWell();
 				StopTimer(boilerTimer);
 				_boilerCfgLed.turnOff();
 				isCallForGas = false;
 			}
-		});
+		}, 50);
 
 		function StopBothColumbiaAndWell() {
 			columbiaTimerRunning = false;
@@ -232,12 +244,12 @@
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
 
 		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton]; // --No vPins from _mapping
-		var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
+		//var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
 		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
 
-		relayArr.forEach((relay) => {
-			relay.writeSync(1);
-		});
+		//relayArr.forEach((relay) => {
+		//	relay.writeSync(1);
+		//});
 		vPinArr.forEach((vPin) => {
 			vPin.write(0);
 		});
