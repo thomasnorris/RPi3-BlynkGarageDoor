@@ -8,6 +8,8 @@
   - `./install.sh`
 - Start the program with pm2
   - `pm2 start program.js --name BoilerControl`
+- Other repositories must have a GitHub webhook set up to post on a push (default webhook action)
+  - `http://public-address-of-pi-here:1240/payload`
 
 ## JavaScript Library References
 - [blynk-library-js](https://github.com/vshymanskyy/blynk-library-js) - Wrapper for Blynk
