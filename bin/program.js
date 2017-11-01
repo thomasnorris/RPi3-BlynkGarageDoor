@@ -8,7 +8,7 @@
 	var	_dbo = require('./database-operations');
 	var	_dto = require('./date-time-operations');
 
-	const RECHARGE_TIME_MINUTES = 5;
+	const RECHARGE_TIME_MINUTES = 10;
 	const ALL_TIMERS_INTERVAL_MILLI = 1000;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
@@ -103,7 +103,7 @@
 				StopTimer(wellRechargeTimer);
 				wellRechargeTimerRunning = false;
 			}
-		}, 150);
+		}, 50);
 	}
 
 	function MonitorBoilerAndManualValveControl() {
@@ -129,8 +129,10 @@
 			}
 		});
 
-		_boilerCfgInput.watch((err, value) => {
-			if (parseInt(value) === 1) {
+		var started = false;
+		StartTimer(() => {
+			if (_boilerCfgInput.readSync() === 1 && !started) {
+				started = true
 				StopTimer(boilerTimer);
 				boilerTimer = StartTimer(() => {
 					_boilerCfgLed.turnOn();
@@ -140,13 +142,14 @@
 					else 
 						StartColumbiaStopWell();
 				}, 100);
-			} else {
+			} else if (_boilerCfgInput.readSync() === 0) {
+				started = false;
 				StopBothColumbiaAndWell();
 				StopTimer(boilerTimer);
 				_boilerCfgLed.turnOff();
 				isCallForGas = false;
 			}
-		});
+		}, 50);
 
 		function StopBothColumbiaAndWell() {
 			columbiaTimerRunning = false;
