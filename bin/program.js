@@ -112,8 +112,10 @@
 		var isCallForGas = false;
 		var wellTimer;
 		var wellTimerRunning = false;
+		var wellManualValve = false;
 		var columbiaTimer;
 		var columbiaTimerRunning = false;
+		var columbiaManualValve = false;
 		var masterEnable = false;
 
 		ManualColumbiaValveControl();
@@ -132,23 +134,25 @@
 
 		var started = false;
 		StartTimer(() => {
-			if (_boilerCfgInput.readSync() === 1 && !started) {
-				started = true
-				StopTimer(boilerTimer);
-				boilerTimer = StartTimer(() => {
-					_boilerCfgLed.turnOn();
-					isCallForGas = true;
-					if (_isWellCharged) 
-						StartWellStopColumbia();
-					else 
-						StartColumbiaStopWell();
-				}, 100);
-			} else if (_boilerCfgInput.readSync() === 0) {
-				started = false;
-				StopBothColumbiaAndWell();
-				StopTimer(boilerTimer);
-				_boilerCfgLed.turnOff();
-				isCallForGas = false;
+			if (!columbiaManualValve && !wellManualValve) {
+				if (_boilerCfgInput.readSync() === 1 && !started) {
+					started = true
+					StopTimer(boilerTimer);
+					boilerTimer = StartTimer(() => {
+						_boilerCfgLed.turnOn();
+						isCallForGas = true;
+						if (_isWellCharged) 
+							StartWellStopColumbia();
+						else 
+							StartColumbiaStopWell();
+					}, 100);
+				} else if (_boilerCfgInput.readSync() === 0) {
+					started = false;
+					StopBothColumbiaAndWell();
+					StopTimer(boilerTimer);
+					_boilerCfgLed.turnOff();
+					isCallForGas = false;
+				}
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
 
@@ -191,11 +195,14 @@
 			_manualColumbiaButton.on('write', (value) => {
 				if (masterEnable) {
 					if (parseInt(value) === 1) {
+						columbiaManualValve = true;
 						StartColumbiaStopWell();
 						_manualWellButton.write(0);
 					}
-					else
+					else {
+						columbiaManualValve = false;
 						StopBothColumbiaAndWell();
+					}
 				} else
 					_manualColumbiaButton.write(0);
 			});
@@ -205,11 +212,14 @@
 			_manualWellButton.on('write', (value) => {
 				if (masterEnable) {
 					if (parseInt(value) === 1) {
+						wellManualValve = true;
 						StartWellStopColumbia();
 						_manualColumbiaButton.write(0);
 					}
-					else
+					else {
+						columbiaManualValve = false;
 						StopBothColumbiaAndWell();
+					}
 				} else
 					_manualWellButton.write(0);
 			});
