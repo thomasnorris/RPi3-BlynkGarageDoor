@@ -8,8 +8,9 @@
 	var	_dbo = require('./database-operations');
 	var	_dto = require('./date-time-operations');
 
-	const RECHARGE_TIME_MINUTES = 10;
-	const ALL_TIMERS_INTERVAL_MILLI = 1000;
+	const RECHARGE_TIME_MINUTES = 90;
+	const ALL_TIMERS_INTERVAL_MILLI = 60000;
+	const INPUT_CHECK_INTERVAL_MILLI = 50;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
 
@@ -74,7 +75,7 @@
 				logged = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} 
-		}, 50);
+		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
 
 	function MonitorWellPressureSwitch() {
@@ -103,7 +104,7 @@
 				StopTimer(wellRechargeTimer);
 				wellRechargeTimerRunning = false;
 			}
-		}, 50);
+		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
 
 	function MonitorBoilerAndManualValveControl() {
@@ -149,7 +150,7 @@
 				_boilerCfgLed.turnOff();
 				isCallForGas = false;
 			}
-		}, 50);
+		}, INPUT_CHECK_INTERVAL_MILLI);
 
 		function StopBothColumbiaAndWell() {
 			columbiaTimerRunning = false;
