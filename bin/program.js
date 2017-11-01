@@ -244,12 +244,8 @@
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
 
 		var vPinArr = [_manualOverrideButton, _manualWellButton, _manualColumbiaButton]; // --No vPins from _mapping
-		//var relayArr = [_columbiaValveRelayOutput, _wellValveRelayOutput, _boilerStartRelayOutput]; // --Only relays (output gpio)
 		var vLedArr = [_usingColumbiaLed, _usingWellLed, _ecobeeCfhLed, _boilerCfgLed]; // --All leds 
 
-		//relayArr.forEach((relay) => {
-		//	relay.writeSync(1);
-		//});
 		vPinArr.forEach((vPin) => {
 			vPin.write(0);
 		});
