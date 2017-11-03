@@ -34,6 +34,8 @@
 	var	_wellValveRelayOutput = new _gpio(17, 'high');
 	var	_boilerStartRelayOutput = new _gpio(27, 'high');
 
+	// --Note: if the keys _mapping are renamed, go to database-operations and make sure that the names
+	// in CreateCsv() are changed to match
 	var _mapping = {
 		DATE: 'Date',
 		WELL_TIMER: 'Well Timer',
