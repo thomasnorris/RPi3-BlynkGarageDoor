@@ -22,6 +22,8 @@ var _mapping;
 
 var _outerFunc = module.exports = {
 	LoadDatabase: function(mapping, callback, isTest) {
+		_mapping = mapping;
+
 		if (isTest) {
 			_dbFileName += '-test';
 			_csvFileName += '-test';
@@ -46,7 +48,6 @@ var _outerFunc = module.exports = {
 			}
 			_data = _outerFunc.ReadDatabase();
 			_headers = Object.keys(_data);
-			_mapping = mapping;
 
 			var recentData = _outerFunc.GetRecentlyLoggedData();
 
@@ -82,12 +83,20 @@ var _outerFunc = module.exports = {
 	WriteToCsv: function() {
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
-		// --Start at 2 and skip the last one because they do not need to be formatted
-		for (var i = 2; i < keys.length - 1; i++) {
+
+		// --Starts at index one, since 0 is the date, and skips others that do not need to be formatted.
+		var i = 1;
+		while (i < keys.length) {
+			if (keys[i] == _mapping.DATE || keys[i] == _mapping.WELL_RECHARGE_COUNTER || keys[i] == _mapping.CFH_COUNTER) {
+				i++;
+				continue;
+			}
 			var num = csvData[keys[i]];
 			if (num != undefined)
 				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
+			i++;
 		}
+
 		_outerFunc.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},
 
