@@ -84,8 +84,8 @@ var _outerFunc = module.exports = {
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 
-		// --Starts at index one, since 0 is the date, and skips others that do not need to be formatted.
-		var i = 1;
+		// --Only format the sections that require it.
+		var i = 0;
 		while (i < keys.length) {
 			if (keys[i] == _mapping.DATE || keys[i] == _mapping.WELL_RECHARGE_COUNTER || keys[i] == _mapping.CFH_COUNTER) {
 				i++;
