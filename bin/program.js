@@ -158,6 +158,8 @@
 		}, INPUT_CHECK_INTERVAL_MILLI);
 
 		function StopBothColumbiaAndWell() {
+			columbiaManualValve = false;
+			wellManualValve = false;
 			columbiaTimerRunning = false;
 			wellTimerRunning = false;
 			StopTimer(wellTimer, wellTimerRunning);
@@ -167,6 +169,7 @@
 		}
 
 		function StartWellStopColumbia() {
+			columbiaManualValve = false;
 			columbiaTimerRunning = false;
 			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
@@ -180,6 +183,7 @@
 		}
 
 		function StartColumbiaStopWell() {
+			wellManualValve = false;
 			wellTimerRunning = false;
 			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
