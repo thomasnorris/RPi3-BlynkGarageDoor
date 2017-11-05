@@ -47,6 +47,7 @@
 
 	var _newData;
 	var _isWellCharged;
+	var _manualOverrideEnable = false;
 
 	// --Start main function
 	_blynk.on('connect', () => {
@@ -66,7 +67,7 @@
 	function MonitorEcobeeCallForHeat() {
 		var countLogged = true;
 		StartTimer(() => {
-			if (_ecobeeCfhInput.readSync() === 1) {
+			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
 					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
 					countLogged = true;
@@ -118,7 +119,6 @@
 		var columbiaTimer;
 		var columbiaTimerRunning = false;
 		var columbiaManualValve = false;
-		var masterEnable = false;
 
 		ManualColumbiaValveControl();
 		ManualWellValveControl();
@@ -126,9 +126,9 @@
 		_manualOverrideButton.on('write', (value) => {
 			if (!isCallForGas) {
 				if (parseInt(value) === 1)
-					masterEnable = true
+					_manualOverrideEnable = true
 				else {
-					masterEnable = false;
+					_manualOverrideEnable = false;
 					_manualColumbiaButton.write(0);
 					_manualWellButton.write(0);
 					StopBothColumbiaAndWell();
@@ -140,25 +140,23 @@
 
 		var timerStarted = false;
 		StartTimer(() => {
-			if (!columbiaManualValve && !wellManualValve) {
-				if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-					timerStarted = true
-					StopTimer(boilerTimer);
-					boilerTimer = StartTimer(() => {
-						_boilerCfgLed.turnOn();
-						isCallForGas = true;
-						if (_isWellCharged) 
-							StartWellStopColumbia();
-						else 
-							StartColumbiaStopWell();
-					}, 100);
-				} else if (_boilerCfgInput.readSync() === 0) {
-					timerStarted = false;
-					StopBothColumbiaAndWell();
-					StopTimer(boilerTimer);
-					_boilerCfgLed.turnOff();
-					isCallForGas = false;
-				}
+			if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
+				timerStarted = true
+				StopTimer(boilerTimer);
+				boilerTimer = StartTimer(() => {
+					_boilerCfgLed.turnOn();
+					isCallForGas = true;
+					if (_isWellCharged) 
+						StartWellStopColumbia();
+					else 
+						StartColumbiaStopWell();
+				}, 100);
+			} else if (_boilerCfgInput.readSync() === 0) {
+				timerStarted = false;
+				StopBothColumbiaAndWell();
+				StopTimer(boilerTimer);
+				_boilerCfgLed.turnOff();
+				isCallForGas = false;
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
 
@@ -203,7 +201,7 @@
 
 		function ManualColumbiaValveControl() {
 			_manualColumbiaButton.on('write', (value) => {
-				if (masterEnable) {
+				if (_manualOverrideEnable) {
 					if (parseInt(value) === 1) {
 						columbiaManualValve = true;
 						StartColumbiaStopWell();
@@ -220,7 +218,7 @@
 
 		function ManualWellValveControl() {
 			_manualWellButton.on('write', (value) => {
-				if (masterEnable) {
+				if (_manualOverrideEnable) {
 					if (parseInt(value) === 1) {
 						wellManualValve = true;
 						StartWellStopColumbia();
