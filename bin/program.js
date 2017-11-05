@@ -104,6 +104,7 @@
 					_newData[_mapping.WELL_RECHARGE_TIMER] = 0;
 				StopTimer(wellRechargeTimer);
 				wellRechargeTimerRunning = false;
+				_isWellCharged = false;
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
