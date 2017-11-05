@@ -64,16 +64,16 @@
 	// --End main function
 
 	function MonitorEcobeeCallForHeat() {
-		var logged = true;
+		var countLogged = true;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1) {
-				if (!logged) {
+				if (!countLogged) {
 					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
-					logged = true;
+					countLogged = true;
 				}
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} else {
-				logged = false;
+				countLogged = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} 
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -123,21 +123,25 @@
 		ManualWellValveControl();
 
 		_manualOverrideButton.on('write', (value) => {
-			if (parseInt(value) === 1)
-				masterEnable = true
-			else {
-				masterEnable = false;
-				_manualColumbiaButton.write(0);
-				_manualWellButton.write(0);
-				StopBothColumbiaAndWell();
+			if (!isCallForGas) {
+				if (parseInt(value) === 1)
+					masterEnable = true
+				else {
+					masterEnable = false;
+					_manualColumbiaButton.write(0);
+					_manualWellButton.write(0);
+					StopBothColumbiaAndWell();
+				}
 			}
+			else
+				_manualOverrideButton.write(0);
 		});
 
-		var started = false;
+		var timerStarted = false;
 		StartTimer(() => {
 			if (!columbiaManualValve && !wellManualValve) {
-				if (_boilerCfgInput.readSync() === 1 && !started) {
-					started = true
+				if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
+					timerStarted = true
 					StopTimer(boilerTimer);
 					boilerTimer = StartTimer(() => {
 						_boilerCfgLed.turnOn();
@@ -148,7 +152,7 @@
 							StartColumbiaStopWell();
 					}, 100);
 				} else if (_boilerCfgInput.readSync() === 0) {
-					started = false;
+					timerStarted = false;
 					StopBothColumbiaAndWell();
 					StopTimer(boilerTimer);
 					_boilerCfgLed.turnOff();
