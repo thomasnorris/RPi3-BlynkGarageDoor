@@ -140,23 +140,25 @@
 
 		var timerStarted = false;
 		StartTimer(() => {
-			if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-				timerStarted = true
-				StopTimer(boilerTimer);
-				boilerTimer = StartTimer(() => {
-					_boilerCfgLed.turnOn();
-					isCallForGas = true;
-					if (_isWellCharged) 
-						StartWellStopColumbia();
-					else 
-						StartColumbiaStopWell();
-				}, 100);
-			} else if (_boilerCfgInput.readSync() === 0) {
-				timerStarted = false;
-				StopBothColumbiaAndWell();
-				StopTimer(boilerTimer);
-				_boilerCfgLed.turnOff();
-				isCallForGas = false;
+			if (!wellManualValve && !columbiaManualValve) {
+				if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
+					timerStarted = true
+					StopTimer(boilerTimer);
+					boilerTimer = StartTimer(() => {
+						_boilerCfgLed.turnOn();
+						isCallForGas = true;
+						if (_isWellCharged) 
+							StartWellStopColumbia();
+						else 
+							StartColumbiaStopWell();
+					}, 100);
+				} else if (_boilerCfgInput.readSync() === 0) {
+					timerStarted = false;
+					StopBothColumbiaAndWell();
+					StopTimer(boilerTimer);
+					_boilerCfgLed.turnOff();
+					isCallForGas = false;
+				}
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
 
