@@ -129,7 +129,7 @@ var _outerFunc = module.exports = {
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(_mapping, () => {
-			module.exports.AddToDatabase(dataToKeep);
+			_outerFunc.AddToDatabase(dataToKeep);
 		});
 		
 		_fs.unlinkSync(dbArchivePathWithName);
@@ -143,7 +143,7 @@ var _outerFunc = module.exports = {
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		_fs.unlinkSync(_dbPathWithName);
-		
+
 		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_outerFunc.CreateNewDatabase(_mapping);
 		_outerFunc.AddToDatabase(dataToKeep);
