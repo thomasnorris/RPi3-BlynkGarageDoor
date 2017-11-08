@@ -17,8 +17,10 @@
 				if (input == 'a') {
 					_dbo.CreateArchives();
 					console.log('Archive completed, exiting...');
-				} else if (input === 'r')
+				} else if (input === 'r') {
 					_dbo.RefreshDatabase();
+					console.log('Refresh completed, exiting...');
+				}
 				else
 					console.log('Exiting.');
 				_rl.close();

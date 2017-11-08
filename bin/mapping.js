@@ -2,9 +2,8 @@
 
 var _outerFunc = module.exports = {
 	GetMapping: function() {
-		// --Note: if the keys are renamed, go to database-operations.js and make sure that the names
-		// in WriteToCsv() are changed to match
-		var mapping = {
+		// --Note: if the keys are renamed, other files that use this will have to be changed accordingly.
+		return {
 			DATE: 'Date',
 			WELL_TIMER: 'Well Timer',
 			COLUMBIA_TIMER: 'Columbia Timer',
@@ -12,7 +11,5 @@ var _outerFunc = module.exports = {
 			CFH_COUNTER : 'Call For Heat Counter',
 			WELL_RECHARGE_TIMER: 'Well Recharge Timer'
 		}
-
-		return mapping;
 	}
 }
