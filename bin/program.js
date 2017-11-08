@@ -11,8 +11,9 @@
 	const RECHARGE_TIME_MINUTES = 90;
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
-	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
-	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
+	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *'; // --Every day at 7 am/pm
+	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *'; // --Every month at 12:00 am on the 1st
+	const CRON_DB_REFRESH_SCHEDULE = '0 0 */1 * *'; // --Every day at 12:00 am
 
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
@@ -268,6 +269,9 @@
 		});
 		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
 			_dbo.CreateArchives();
+		});
+		_schedule.scheduleJob(CRON_DB_REFRESH_SCHEDULE, () => {
+			_dbo.RefreshDatabase();
 		});
 	}
 

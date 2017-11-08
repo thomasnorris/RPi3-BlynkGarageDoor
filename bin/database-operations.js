@@ -143,6 +143,7 @@ var _outerFunc = module.exports = {
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		_fs.unlinkSync(_dbPathWithName);
+		
 		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_outerFunc.CreateNewDatabase(_mapping);
 		_outerFunc.AddToDatabase(dataToKeep);
