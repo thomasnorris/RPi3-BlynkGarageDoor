@@ -34,8 +34,8 @@ var _outerFunc = module.exports = {
 		_fs.stat(_dbPathWithName, (err, stats) => {
 			// --Stats will be false if the db file is not found, and a new db and csv will be created
 			if (!stats) {
-				_fs.closeSync(_fs.openSync(_dbPathWithName, 'w'));
-				_fs.closeSync(_fs.openSync(_csvPathWithName, 'w'));
+				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
+				_outerFunc.CreateNewEmptyFile(_csvPathWithName);
 
 				_outerFunc.CreateNewDatabase(_mapping);
 
@@ -43,6 +43,7 @@ var _outerFunc = module.exports = {
 				_outerFunc.WriteToDatabase();
 				_outerFunc.WriteToCsv();
 			}
+
 			_data = _outerFunc.ReadDatabase();
 			_headers = Object.keys(_data);
 
@@ -145,7 +146,7 @@ var _outerFunc = module.exports = {
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		_fs.unlinkSync(_dbPathWithName);
-		_fs.closeSync(_fs.openSync(_dbPathWithName, 'w'));
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_outerFunc.CreateNewDatabase(_mapping);
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
@@ -155,5 +156,9 @@ var _outerFunc = module.exports = {
 		Object.keys(mapping).forEach((key) => {
 			_data[mapping[key]] = [];
 		});
+	},
+
+	CreateNewEmptyFile: function(filePath) {
+		_fs.closeSync(_fs.openSync(filePath, 'w'));
 	}
 }
