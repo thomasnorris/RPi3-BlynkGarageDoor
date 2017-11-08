@@ -91,8 +91,11 @@ var _outerFunc = module.exports = {
 		_outerFunc.WriteToCsv(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},
 
-	WriteToDatabase: function() {
-		_fs.writeFileSync(_dbPathWithName, JSON.stringify(_data, null, '\t'));
+	WriteToCsv: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
+		var writer = _csvWriter(csvWriterArgs);
+		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
+		writer.write(csvData);
+		writer.end();
 	},
 
 	AddToDatabase: function(newData) {
@@ -106,17 +109,30 @@ var _outerFunc = module.exports = {
 		_data = _outerFunc.ReadDatabase();
 	},
 
+	WriteToDatabase: function() {
+		_fs.writeFileSync(_dbPathWithName, JSON.stringify(_data, null, '\t'));
+	},
+
 	ReadDatabase: function() {
 		return JSON.parse(_fs.readFileSync(_dbPathWithName));
 	},
 	
-	WriteToCsv: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
-		var writer = _csvWriter(csvWriterArgs);
-		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
-		writer.write(csvData);
-		writer.end();
+	RefreshDatabase: function() {
+		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
+		_fs.unlinkSync(_dbPathWithName);
+
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
+		_outerFunc.CreateNewDatabase(_mapping);
+		_outerFunc.AddToDatabase(dataToKeep);
 	},
 
+	CreateNewDatabase: function(mapping) {
+		_data = {};
+		Object.keys(mapping).forEach((key) => {
+			_data[mapping[key]] = [];
+		});
+	},
+	
 	CreateArchives: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION);
@@ -134,22 +150,6 @@ var _outerFunc = module.exports = {
 			var date = _dto.GetCurrentDate().WithoutTime();
 			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
 		}
-	},
-
-	RefreshDatabase: function() {
-		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		_fs.unlinkSync(_dbPathWithName);
-
-		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-		_outerFunc.CreateNewDatabase(_mapping);
-		_outerFunc.AddToDatabase(dataToKeep);
-	},
-
-	CreateNewDatabase: function(mapping) {
-		_data = {};
-		Object.keys(mapping).forEach((key) => {
-			_data[mapping[key]] = [];
-		});
 	},
 
 	CreateNewEmptyFile: function(filePath) {
