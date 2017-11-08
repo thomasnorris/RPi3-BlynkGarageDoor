@@ -135,7 +135,6 @@ var _outerFunc = module.exports = {
 
 		_outerFunc.LoadDatabase(_mapping, () => {
 			module.exports.AddToDatabase(dataToKeep);
-			module.exports.WriteToCsv();
 		});
 		
 		_fs.unlinkSync(dbArchivePathWithName);
