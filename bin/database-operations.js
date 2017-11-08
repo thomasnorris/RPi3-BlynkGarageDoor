@@ -17,9 +17,6 @@ var _data;
 var _headers;
 var _mapping;
 
-// --Database == .json file
-// --CSV == .csv file
-
 var _outerFunc = module.exports = {
 	LoadDatabase: function(mapping, callback, isTest) {
 		_mapping = mapping;
@@ -51,7 +48,7 @@ var _outerFunc = module.exports = {
 
 			Object.keys(recentData).forEach((key) => {
 				// --Will be undefined if from a new CSV and 0 is more friendly
-				if (recentData[key] == undefined)
+				if (recentData[key] === undefined)
 					recentData[key] = 0;
 			});
 
@@ -85,12 +82,12 @@ var _outerFunc = module.exports = {
 		// --Only format the sections that require it.
 		var i = 0;
 		while (i < keys.length) {
-			if (keys[i] == _mapping.DATE || keys[i] == _mapping.WELL_RECHARGE_COUNTER || keys[i] == _mapping.CFH_COUNTER) {
+			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER) {
 				i++;
 				continue;
 			}
 			var num = csvData[keys[i]];
-			if (num != undefined)
+			if (num !== undefined)
 				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
 			i++;
 		}
