@@ -256,7 +256,7 @@
 
 	function StartSchedules() {
 		_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
-	    	_dbo.WriteToCsv();
+	    	_dbo.AddToCsv();
 		});
 		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
 			_dbo.CreateArchives();

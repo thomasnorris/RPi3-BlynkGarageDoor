@@ -40,7 +40,7 @@
 				_newData[_mapping.CFH_COUNTER] = Math.floor(Math.random() * (max - 1) + i);
 				_newData[_mapping.WELL_RECHARGE_TIMER] = --_newData[_mapping.CFH_COUNTER];
 				_dbo.AddToDatabase(_newData);
-				_dbo.WriteToCsv();
+				_dbo.AddToCsv();
 				i++;
 			} else {
 				clearInterval(interval);

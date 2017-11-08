@@ -33,12 +33,19 @@ var _outerFunc = module.exports = {
 			if (!stats) {
 				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 				_outerFunc.CreateNewEmptyFile(_csvPathWithName);
-
 				_outerFunc.CreateNewDatabase(_mapping);
 
-				CreateNewCsv();
+				var tempHeaders = [];
+				var csvData = [];
+				Object.keys(_data).forEach((key) => {
+					tempHeaders.push(key);
+					// --Pushing an empty character because something has to be written on creation
+					csvData.push('');
+				});
+				_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
+
 				_outerFunc.WriteToDatabase();
-				_outerFunc.WriteToCsv();
+				_outerFunc.AddToCsv();
 			}
 
 			_data = _outerFunc.ReadDatabase();
@@ -54,17 +61,6 @@ var _outerFunc = module.exports = {
 
 			callback(recentData);
 		});
-
-		function CreateNewCsv() {
-			var tempHeaders = [];
-			var csvData = [];
-			Object.keys(_data).forEach((key) => {
-				tempHeaders.push(key);
-				// --Pushing an empty character because something has to be written on creation
-				csvData.push('');
-			});
-			_outerFunc.CsvWriter(csvData, _csvPathWithName, { headers: tempHeaders });
-		}
 	},
 	
 	GetRecentlyLoggedData: function() {
@@ -75,7 +71,7 @@ var _outerFunc = module.exports = {
 		return recentData;
 	},
 
-	WriteToCsv: function() {
+	AddToCsv: function() {
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 
@@ -92,7 +88,7 @@ var _outerFunc = module.exports = {
 			i++;
 		}
 
-		_outerFunc.CsvWriter(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
+		_outerFunc.WriteToCsv(csvData, _csvPathWithName, { sendHeaders: false }, { flags: 'a' });
 	},
 
 	WriteToDatabase: function() {
@@ -114,7 +110,7 @@ var _outerFunc = module.exports = {
 		return JSON.parse(_fs.readFileSync(_dbPathWithName));
 	},
 	
-	CsvWriter: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
+	WriteToCsv: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
 		var writer = _csvWriter(csvWriterArgs);
 		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
 		writer.write(csvData);
