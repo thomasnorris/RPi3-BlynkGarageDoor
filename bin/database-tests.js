@@ -4,15 +4,7 @@ var	_schedule = require('node-schedule');
 var	_rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
 var	_dto = require('./date-time-operations');
 
-var _mapping = {
-	DATE: 'Date',
-	WELL_TIMER: 'Well Timer',
-	COLUMBIA_TIMER: 'Columbia Timer',
-	WELL_RECHARGE_COUNTER: 'Well Counter',
-	CFH_COUNTER : 'Call For Heat Counter',
-	WELL_RECHARGE_TIMER: 'Well Recharge Timer'
-}
-
+var _mapping = require('./mapping').GetMapping();
 var _newData;
 
 _dbo.LoadDatabase(_mapping, (recentData) => {
