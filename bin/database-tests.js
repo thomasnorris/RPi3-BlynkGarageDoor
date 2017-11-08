@@ -19,12 +19,13 @@ _dbo.LoadDatabase(_mapping, (recentData) => {
 	_newData = recentData;
 	
 	Fill(() => {
-		console.log('Files created with dummy data.\nEnter \"a\" to run a test archive.\nPress \"enter\" to exit.');
+		console.log('Files created with dummy data.\nEnter \"a\" to run a test archive.\nEnter \"r\" to refresh the database.\nPress \"enter\" to exit.');
 		_rl.on('line', (input) => {
 			if (input == 'a') {
 				_dbo.CreateArchives();
 				console.log('Archive completed, exiting...');
-			}
+			} else if (input === 'r')
+				_dbo.RefreshDatabase();
 			else
 				console.log('Exiting.');
 			_rl.close();

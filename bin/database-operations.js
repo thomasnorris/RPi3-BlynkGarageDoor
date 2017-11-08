@@ -34,13 +34,10 @@ var _outerFunc = module.exports = {
 		_fs.stat(_dbPathWithName, (err, stats) => {
 			// --Stats will be false if the db file is not found, and a new db and csv will be created
 			if (!stats) {
-				_fs.openSync(_dbPathWithName, 'w');
-				_fs.openSync(_csvPathWithName, 'w');
+				_fs.closeSync(_fs.openSync(_dbPathWithName, 'w'));
+				_fs.closeSync(_fs.openSync(_csvPathWithName, 'w'));
 
-				_data = {};
-				Object.keys(mapping).forEach((key) => {
-					_data[mapping[key]] = [];
-				});
+				_outerFunc.CreateNewDatabase(_mapping);
 
 				CreateNewCsv();
 				_outerFunc.WriteToDatabase();
@@ -144,4 +141,19 @@ var _outerFunc = module.exports = {
 			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
 		}
 	},
+
+	RefreshDatabase: function() {
+		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
+		_fs.unlinkSync(_dbPathWithName);
+		_fs.closeSync(_fs.openSync(_dbPathWithName, 'w'));
+		_outerFunc.CreateNewDatabase(_mapping);
+		_outerFunc.AddToDatabase(dataToKeep);
+	},
+
+	CreateNewDatabase: function(mapping) {
+		_data = {};
+		Object.keys(mapping).forEach((key) => {
+			_data[mapping[key]] = [];
+		});
+	}
 }
