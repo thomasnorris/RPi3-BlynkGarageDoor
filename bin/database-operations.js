@@ -29,12 +29,11 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			// --Stats will be false if the db file is not found, and a new db will be created
-			if (!stats) {
+			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
+			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 
 				_fs.stat(_csvPathWithName, (err, stats) => {
-					// --Same as above but with the csv
 					if (!stats) {
 						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
 						var tempHeaders = [];
