@@ -39,6 +39,7 @@
 	var _mapping = require('./mapping').GetMapping();
 	var _newData;
 	var _isWellCharged;
+	var _isCallForGas = false;
 	var _manualOverrideEnable = false;
 
 	// --Start main function
@@ -104,7 +105,6 @@
 
 	function MonitorBoilerAndManualValveControl() {
 		var boilerTimer;
-		var isCallForGas = false;
 		var wellTimer;
 		var wellTimerRunning = false;
 		var wellManualValve = false;
@@ -116,7 +116,7 @@
 		ManualWellValveControl();
 
 		_manualOverrideButton.on('write', (value) => {
-			if (!isCallForGas) {
+			if (!_isCallForGas) {
 				if (parseInt(value) === 1)
 					_manualOverrideEnable = true
 				else {
@@ -138,7 +138,7 @@
 					StopTimer(boilerTimer);
 					boilerTimer = StartTimer(() => {
 						_boilerCfgLed.turnOn();
-						isCallForGas = true;
+						_isCallForGas = true;
 						if (_isWellCharged) 
 							StartWellStopColumbia();
 						else 
@@ -149,7 +149,7 @@
 					StopBothColumbiaAndWell();
 					StopTimer(boilerTimer);
 					_boilerCfgLed.turnOff();
-					isCallForGas = false;
+					_isCallForGas = false;
 				}
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -171,7 +171,7 @@
 			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			if (!wellTimerRunning && isCallForGas) {
+			if (!wellTimerRunning && _isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
 					FormatAndAddToDatabase(_wellTimerDisplay, ++_newData[_mapping.WELL_TIMER], true);
@@ -185,7 +185,7 @@
 			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			if (!columbiaTimerRunning && isCallForGas) {
+			if (!columbiaTimerRunning && _isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
 					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_newData[_mapping.COLUMBIA_TIMER], true);
@@ -256,13 +256,16 @@
 
 	function StartSchedules() {
 		_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
-	    	_dbo.AddToCsv();
+			if (!_isCallForGas && _isWellCharged)
+	    		_dbo.AddToCsv();
 		});
 		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
-			_dbo.CreateArchives();
+			if (!_isCallForGas && _isWellCharged)
+				_dbo.CreateArchives();
 		});
 		_schedule.scheduleJob(CRON_DB_REFRESH_SCHEDULE, () => {
-			_dbo.RefreshDatabase();
+			if (!_isCallForGas && _isWellCharged)
+				_dbo.RefreshDatabase();
 		});
 	}
 
