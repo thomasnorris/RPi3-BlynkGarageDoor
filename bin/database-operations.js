@@ -32,6 +32,8 @@ var _outerFunc = module.exports = {
 			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
 			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
+				_outerFunc.CreateNewDatabase(_mapping);
+				_outerFunc.WriteToDatabase();
 
 				_fs.stat(_csvPathWithName, (err, stats) => {
 					// --Only create a new csv if that is not found either
@@ -45,12 +47,9 @@ var _outerFunc = module.exports = {
 							csvData.push('');
 						});
 						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
+						_outerFunc.AddToCsv();
 					}
 				});
-				
-				_outerFunc.CreateNewDatabase(_mapping);
-				_outerFunc.WriteToDatabase();
-				_outerFunc.AddToCsv();
 			}
 
 			_data = _outerFunc.ReadDatabase();
