@@ -59,7 +59,7 @@ var _outerFunc = module.exports = {
 			var recentData = _outerFunc.GetRecentlyLoggedData();
 
 			Object.keys(recentData).forEach((key) => {
-				// --Will be undefined if from a new CSV and 0 is more friendly
+				// --Will be undefined if a new db was just created
 				if (recentData[key] === undefined)
 					recentData[key] = 0;
 			});
@@ -158,6 +158,7 @@ var _outerFunc = module.exports = {
 	},
 
 	CreateNewEmptyFile: function(filePath) {
+		// --Creates a new file and then closes it so it can be accessed right away
 		_fs.closeSync(_fs.openSync(filePath, 'w'));
 	}
 }

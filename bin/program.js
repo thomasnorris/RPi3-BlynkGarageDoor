@@ -258,23 +258,13 @@
 	}
 
 	function StartSchedules() {
-		/*
-		_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
-			_dbo.AddToCsv();
-		});
-		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
-			_dbo.CreateArchives();
-		});
-		_schedule.scheduleJob(CRON_DB_REFRESH_SCHEDULE, () => {
-			_dbo.RefreshDatabase();
-		});
-		*/
 
 		CreateSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 		CreateSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives);
 		CreateSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
 		function CreateSchedule(originalSchedule, executeFunction) {
+			// --This will add one minute to the schedule and try again if need b. It will rest to default on success.
 			var newSchedule = originalSchedule;
 			var job = _schedule.scheduleJob(originalSchedule, () => {
 				job.cancel();
@@ -297,6 +287,7 @@
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 
+		// --Force the well to be fully charged on a total restart
 		if (_newData[_mapping.WELL_RECHARGE_TIMER] === 0)
 			_newData[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
