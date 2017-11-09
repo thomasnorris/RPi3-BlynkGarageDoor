@@ -265,20 +265,20 @@
 	}
 
 	function StartSchedules() {
+		/*
+			File operations while there's a chance of reading/writing to them can be dangerous. 
+			If there is a call for heat or the well is not charged the system is most likely reading/writing data, and
+				if this happens when one of the schedules are to run there is a chance that something will break, which is 
+				not good. 
+			This method will contrinue to try and run the schedule every minute after the initial run.
+			It will rest to default on success.
+		*/
 
 		CreateSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 		CreateSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives);
 		CreateSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
 		function CreateSchedule(originalSchedule, executeFunction) {
-			/*
-				File operations while there's a chance of reading/writing to them can be dangerous. 
-				If there is a call for heat or the well is not charged the system is most likely reading/writing data, and
-					if this happens when one of the schedules are to run there is a chance that something will break, which is 
-					not good. 
-				This method will contrinue to try and run the schedule every minute after the initial run.
-				It will rest to default on success.
-			*/
 			var newSchedule = originalSchedule;
 			var job = _schedule.scheduleJob(originalSchedule, () => {
 				job.cancel();
