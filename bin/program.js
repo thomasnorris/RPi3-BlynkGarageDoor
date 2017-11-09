@@ -271,7 +271,13 @@
 		CreateSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
 		function CreateSchedule(originalSchedule, executeFunction) {
-			// --This will add one minute to the schedule and try again if need b. It will rest to default on success.
+			/*
+				File operations while there's a chance of reading/writing to them can be dangerous. 
+				If there is a call for heat or the well is not charged the system is most likely reading/writing data, and
+					if this happens when one of the schedules are to run there is a chance that something will break, which is 
+					super not good. This will contrinue to try and run the schedule a minute later and will continue to do so.
+				It will rest to default on success.
+			*/
 			var newSchedule = originalSchedule;
 			var job = _schedule.scheduleJob(originalSchedule, () => {
 				job.cancel();
