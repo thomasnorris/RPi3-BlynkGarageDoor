@@ -39,7 +39,7 @@
 	var _mapping = require('./mapping').GetMapping();
 	var _newData;
 	var _isWellCharged;
-	var _isCallForGas = false;
+	var _isCallForHeat = false;
 	var _manualOverrideEnable = false;
 
 	// --Start main function
@@ -65,9 +65,11 @@
 					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
 					countLogged = true;
 				}
+				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} else {
 				countLogged = false;
+				_isCallForHeat = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} 
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -111,14 +113,15 @@
 		var columbiaTimer;
 		var columbiaTimerRunning = false;
 		var columbiaManualValve = false;
+		var isCallForGas = false;
 
 		ManualColumbiaValveControl();
 		ManualWellValveControl();
 
 		_manualOverrideButton.on('write', (value) => {
-			if (!_isCallForGas) {
+			if (!_isCallForHeat) {
 				if (parseInt(value) === 1)
-					_manualOverrideEnable = true
+					_manualOverrideEnable = true;
 				else {
 					_manualOverrideEnable = false;
 					_manualColumbiaButton.write(0);
@@ -132,13 +135,13 @@
 
 		var timerStarted = false;
 		StartTimer(() => {
-			if (!wellManualValve && !columbiaManualValve) {
+			if (!_manualOverrideEnable) {
 				if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
 					timerStarted = true
 					StopTimer(boilerTimer);
 					boilerTimer = StartTimer(() => {
 						_boilerCfgLed.turnOn();
-						_isCallForGas = true;
+						isCallForGas = true;
 						if (_isWellCharged) 
 							StartWellStopColumbia();
 						else 
@@ -149,7 +152,7 @@
 					StopBothColumbiaAndWell();
 					StopTimer(boilerTimer);
 					_boilerCfgLed.turnOff();
-					_isCallForGas = false;
+					isCallForGas = false;
 				}
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -171,7 +174,7 @@
 			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
-			if (!wellTimerRunning && _isCallForGas) {
+			if (!wellTimerRunning && isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
 					FormatAndAddToDatabase(_wellTimerDisplay, ++_newData[_mapping.WELL_TIMER], true);
@@ -185,7 +188,7 @@
 			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
-			if (!columbiaTimerRunning && _isCallForGas) {
+			if (!columbiaTimerRunning && isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
 					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_newData[_mapping.COLUMBIA_TIMER], true);
@@ -275,7 +278,7 @@
 			var newSchedule = originalSchedule;
 			var job = _schedule.scheduleJob(originalSchedule, () => {
 				job.cancel();
-				if (!_isCallForGas && _isWellCharged) {
+				if (!_isCallForHeat && _isWellCharged) {
 					executeFunction();
 					job.reschedule(originalSchedule);
 				} else {
