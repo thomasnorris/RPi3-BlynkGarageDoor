@@ -34,6 +34,7 @@ var _outerFunc = module.exports = {
 				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 
 				_fs.stat(_csvPathWithName, (err, stats) => {
+					// --Only create a new csv if that is not found either
 					if (!stats) {
 						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
 						var tempHeaders = [];
