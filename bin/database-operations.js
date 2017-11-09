@@ -29,21 +29,26 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			// --Stats will be false if the db file is not found, and a new db and csv will be created
+			// --Stats will be false if the db file is not found, and a new db will be created
 			if (!stats) {
 				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-				_outerFunc.CreateNewEmptyFile(_csvPathWithName);
-				_outerFunc.CreateNewDatabase(_mapping);
 
-				var tempHeaders = [];
-				var csvData = [];
-				Object.keys(_data).forEach((key) => {
-					tempHeaders.push(key);
-					// --Pushing an empty character because something has to be written on creation
-					csvData.push('');
+				_fs.stat(_csvPathWithName, (err, stats) => {
+					// --Same as above but with the csv
+					if (!stats) {
+						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
+						var tempHeaders = [];
+						var csvData = [];
+						Object.keys(_data).forEach((key) => {
+							tempHeaders.push(key);
+							// --Pushing an empty character because something has to be written on creation
+							csvData.push('');
+						});
+						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
+					}
 				});
-				_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
-
+				
+				_outerFunc.CreateNewDatabase(_mapping);
 				_outerFunc.WriteToDatabase();
 				_outerFunc.AddToCsv();
 			}
