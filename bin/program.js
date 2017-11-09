@@ -255,18 +255,37 @@
 	}
 
 	function StartSchedules() {
+		/*
 		_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
-			if (!_isCallForGas && _isWellCharged)
-	    		_dbo.AddToCsv();
+			_dbo.AddToCsv();
 		});
 		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
-			if (!_isCallForGas && _isWellCharged)
-				_dbo.CreateArchives();
+			_dbo.CreateArchives();
 		});
 		_schedule.scheduleJob(CRON_DB_REFRESH_SCHEDULE, () => {
-			if (!_isCallForGas && _isWellCharged)
-				_dbo.RefreshDatabase();
+			_dbo.RefreshDatabase();
 		});
+		*/
+
+		CreateSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
+		CreateSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives);
+		CreateSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
+
+		function CreateSchedule(originalSchedule, executeFunction) {
+			var newSchedule = originalSchedule;
+			var job = _schedule.scheduleJob(originalSchedule, () => {
+				job.cancel();
+				if (!_isCallForGas && _isWellCharged) {
+					executeFunction();
+					job.reschedule(originalSchedule);
+				} else {
+					var arr = newSchedule.split(' ');
+					arr[0] = parseInt(arr[0]) + 1;
+					newSchedule = arr.join(' ');
+					job.reschedule(newSchedule);
+				}
+			});
+		}
 	}
 
 	function InitializeValues() {
