@@ -52,7 +52,7 @@
 			StartSchedules();
 			MonitorEcobeeCallForHeat();
 			MonitorWellPressureSwitch();
-			MonitorBoilerAndManualValveControl();
+			MonitorManualValveOverridesAndBoilerCallForGas();
 		});
 	});
 	// --End main function
@@ -105,7 +105,7 @@
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
 
-	function MonitorBoilerAndManualValveControl() {
+	function MonitorManualValveOverridesAndBoilerCallForGas() {
 		var boilerTimer;
 		var wellTimer;
 		var wellTimerRunning = false;
@@ -115,47 +115,88 @@
 		var columbiaManualValve = false;
 		var isCallForGas = false;
 
+
+		MonitorManualValveOverrideButton();
+		MonitorBoilerCallForGas();
 		ManualColumbiaValveControl();
 		ManualWellValveControl();
 
-		_manualOverrideButton.on('write', (value) => {
-			if (!_isCallForHeat) {
-				if (parseInt(value) === 1)
-					_manualOverrideEnable = true;
-				else {
-					_manualOverrideEnable = false;
-					_manualColumbiaButton.write(0);
-					_manualWellButton.write(0);
-					StopBothColumbiaAndWell();
+		function MonitorManualValveOverrideButton() {
+			_manualOverrideButton.on('write', (value) => {
+				if (!_isCallForHeat) {
+					if (parseInt(value) === 1)
+						_manualOverrideEnable = true;
+					else {
+						_manualOverrideEnable = false;
+						_manualColumbiaButton.write(0);
+						_manualWellButton.write(0);
+						StopBothColumbiaAndWell();
+					}
 				}
-			}
-			else
-				_manualOverrideButton.write(0);
-		});
+				else
+					_manualOverrideButton.write(0);
+			});
+		}
 
-		var timerStarted = false;
-		StartTimer(() => {
-			if (!_manualOverrideEnable) {
-				if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-					timerStarted = true
-					StopTimer(boilerTimer);
-					boilerTimer = StartTimer(() => {
-						_boilerCfgLed.turnOn();
-						isCallForGas = true;
-						if (_isWellCharged) 
-							StartWellStopColumbia();
-						else 
-							StartColumbiaStopWell();
-					}, 100);
-				} else if (_boilerCfgInput.readSync() === 0) {
-					timerStarted = false;
-					StopBothColumbiaAndWell();
-					StopTimer(boilerTimer);
-					_boilerCfgLed.turnOff();
-					isCallForGas = false;
+		function MonitorBoilerCallForGas() {
+			var timerStarted = false;
+			StartTimer(() => {
+				if (!_manualOverrideEnable) {
+					if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
+						timerStarted = true
+						StopTimer(boilerTimer);
+						boilerTimer = StartTimer(() => {
+							_boilerCfgLed.turnOn();
+							isCallForGas = true;
+							if (_isWellCharged) 
+								StartWellStopColumbia();
+							else 
+								StartColumbiaStopWell();
+						}, 100);
+					} else if (_boilerCfgInput.readSync() === 0) {
+						timerStarted = false;
+						StopBothColumbiaAndWell();
+						StopTimer(boilerTimer);
+						_boilerCfgLed.turnOff();
+						isCallForGas = false;
+					}
 				}
-			}
-		}, INPUT_CHECK_INTERVAL_MILLI);
+			}, INPUT_CHECK_INTERVAL_MILLI);
+		}
+
+		function ManualColumbiaValveControl() {
+			_manualColumbiaButton.on('write', (value) => {
+				if (_manualOverrideEnable) {
+					if (parseInt(value) === 1) {
+						columbiaManualValve = true;
+						StartColumbiaStopWell();
+						_manualWellButton.write(0);
+					}
+					else {
+						columbiaManualValve = false;
+						StopBothColumbiaAndWell();
+					}
+				} else
+					_manualColumbiaButton.write(0);
+			});
+		}
+
+		function ManualWellValveControl() {
+			_manualWellButton.on('write', (value) => {
+				if (_manualOverrideEnable) {
+					if (parseInt(value) === 1) {
+						wellManualValve = true;
+						StartWellStopColumbia();
+						_manualColumbiaButton.write(0);
+					}
+					else {
+						wellManualValve = false;
+						StopBothColumbiaAndWell();
+					}
+				} else
+					_manualWellButton.write(0);
+			});
+		}
 
 		function StopBothColumbiaAndWell() {
 			columbiaManualValve = false;
@@ -194,40 +235,6 @@
 					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_newData[_mapping.COLUMBIA_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
-		}
-
-		function ManualColumbiaValveControl() {
-			_manualColumbiaButton.on('write', (value) => {
-				if (_manualOverrideEnable) {
-					if (parseInt(value) === 1) {
-						columbiaManualValve = true;
-						StartColumbiaStopWell();
-						_manualWellButton.write(0);
-					}
-					else {
-						columbiaManualValve = false;
-						StopBothColumbiaAndWell();
-					}
-				} else
-					_manualColumbiaButton.write(0);
-			});
-		}
-
-		function ManualWellValveControl() {
-			_manualWellButton.on('write', (value) => {
-				if (_manualOverrideEnable) {
-					if (parseInt(value) === 1) {
-						wellManualValve = true;
-						StartWellStopColumbia();
-						_manualColumbiaButton.write(0);
-					}
-					else {
-						wellManualValve = false;
-						StopBothColumbiaAndWell();
-					}
-				} else
-					_manualWellButton.write(0);
-			});
 		}
 	}
 
