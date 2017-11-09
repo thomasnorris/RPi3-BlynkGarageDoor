@@ -11,8 +11,9 @@
 	const RECHARGE_TIME_MINUTES = 90;
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
-	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *';
-	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *';
+	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *'; // --Every day at 7 am/pm
+	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *'; // --Every month at 12:00 am on the 1st
+	const CRON_DB_REFRESH_SCHEDULE = '0 0 */1 * *'; // --Every day at 12:00 am
 
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
@@ -34,17 +35,8 @@
 	var	_wellValveRelayOutput = new _gpio(17, 'high');
 	var	_boilerStartRelayOutput = new _gpio(27, 'high');
 
-	// --Note: if the keys _mapping are renamed, go to database-operations and make sure that the names
-	// in WriteToCsv() are changed to match
-	var _mapping = {
-		DATE: 'Date',
-		WELL_TIMER: 'Well Timer',
-		COLUMBIA_TIMER: 'Columbia Timer',
-		WELL_RECHARGE_COUNTER: 'Well Counter',
-		CFH_COUNTER : 'Call For Heat Counter',
-		WELL_RECHARGE_TIMER: 'Well Recharge Timer'
-	}
-
+	
+	var _mapping = require('./mapping').GetMapping();
 	var _newData;
 	var _isWellCharged;
 	var _manualOverrideEnable = false;
@@ -264,10 +256,13 @@
 
 	function StartSchedules() {
 		_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
-	    	_dbo.WriteToCsv();
+	    	_dbo.AddToCsv();
 		});
 		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
 			_dbo.CreateArchives();
+		});
+		_schedule.scheduleJob(CRON_DB_REFRESH_SCHEDULE, () => {
+			_dbo.RefreshDatabase();
 		});
 	}
 
@@ -276,6 +271,10 @@
 		_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
+
+		if (_newData[_mapping.WELL_RECHARGE_TIMER] === 0)
+			_newData[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
+
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
 	}
 })();
