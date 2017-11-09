@@ -58,7 +58,7 @@
 	// --End main function
 
 	function MonitorEcobeeCallForHeat() {
-		var countLogged = true;
+		var countLogged = false;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
