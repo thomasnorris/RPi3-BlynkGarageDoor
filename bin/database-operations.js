@@ -102,11 +102,17 @@ var _outerFunc = module.exports = {
 		writer.end();
 	},
 
-	AddToDatabase: function(newData) {
-		_data[_headers[0]].push(_dto.GetCurrentDate().WithTime());
+	AddToDatabase: function(newData, needDate) {
+		var startIndex;
+		// --Conditionally add the date
+		if (needDate) {
+			_data[_headers[0]].push(_dto.GetCurrentDate().WithTime());
+			startIndex = 1;
+		} else
+			startIndex = 0;
+
 		var keys = Object.keys(newData);
-		// --Start at 1 because the 0th index is set above
-		for (var i = 1; i < keys.length; i++) {
+		for (var i = startIndex; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
 		}
 		_outerFunc.WriteToDatabase();

@@ -261,7 +261,7 @@
 			display.write(_dto.MinutesAsHoursMins(dataToAdd));
 		else
 			display.write(dataToAdd);
-		_dbo.AddToDatabase(_newData);
+		_dbo.AddToDatabase(_newData, true);
 	}
 
 	function StartSchedules() {
