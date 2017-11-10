@@ -1,5 +1,5 @@
 {
-  "name": "RPi3-BoilerControl",
+  "name": "BoilerControl",
   "version": "1.0.0",
   "description": "",
   "main": "program.js",
