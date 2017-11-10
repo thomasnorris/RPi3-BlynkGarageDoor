@@ -39,6 +39,7 @@
 	var _mapping = require('./mapping').GetMapping();
 	var _newData;
 	var _isWellCharged;
+	var _isCallForHeat = false;
 	var _manualOverrideEnable = false;
 
 	// --Start main function
@@ -51,22 +52,24 @@
 			StartSchedules();
 			MonitorEcobeeCallForHeat();
 			MonitorWellPressureSwitch();
-			MonitorBoilerAndManualValveControl();
+			MonitorManualValveOverridesAndBoilerCallForGas();
 		});
 	});
 	// --End main function
 
 	function MonitorEcobeeCallForHeat() {
-		var countLogged = true;
+		var countLogged = false;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
 					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
 					countLogged = true;
 				}
+				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} else {
 				countLogged = false;
+				_isCallForHeat = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 			} 
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -102,57 +105,98 @@
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
 
-	function MonitorBoilerAndManualValveControl() {
+	function MonitorManualValveOverridesAndBoilerCallForGas() {
 		var boilerTimer;
-		var isCallForGas = false;
 		var wellTimer;
 		var wellTimerRunning = false;
 		var wellManualValve = false;
 		var columbiaTimer;
 		var columbiaTimerRunning = false;
 		var columbiaManualValve = false;
+		var isCallForGas = false;
 
+
+		MonitorManualValveOverrideButton();
+		MonitorBoilerCallForGas();
 		ManualColumbiaValveControl();
 		ManualWellValveControl();
 
-		_manualOverrideButton.on('write', (value) => {
-			if (!isCallForGas) {
-				if (parseInt(value) === 1)
-					_manualOverrideEnable = true
-				else {
-					_manualOverrideEnable = false;
-					_manualColumbiaButton.write(0);
-					_manualWellButton.write(0);
-					StopBothColumbiaAndWell();
+		function MonitorManualValveOverrideButton() {
+			_manualOverrideButton.on('write', (value) => {
+				if (!_isCallForHeat) {
+					if (parseInt(value) === 1)
+						_manualOverrideEnable = true;
+					else {
+						_manualOverrideEnable = false;
+						_manualColumbiaButton.write(0);
+						_manualWellButton.write(0);
+						StopBothColumbiaAndWell();
+					}
 				}
-			}
-			else
-				_manualOverrideButton.write(0);
-		});
+				else
+					_manualOverrideButton.write(0);
+			});
+		}
 
-		var timerStarted = false;
-		StartTimer(() => {
-			if (!wellManualValve && !columbiaManualValve) {
-				if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-					timerStarted = true
-					StopTimer(boilerTimer);
-					boilerTimer = StartTimer(() => {
-						_boilerCfgLed.turnOn();
-						isCallForGas = true;
-						if (_isWellCharged) 
-							StartWellStopColumbia();
-						else 
-							StartColumbiaStopWell();
-					}, 100);
-				} else if (_boilerCfgInput.readSync() === 0) {
-					timerStarted = false;
-					StopBothColumbiaAndWell();
-					StopTimer(boilerTimer);
-					_boilerCfgLed.turnOff();
-					isCallForGas = false;
+		function MonitorBoilerCallForGas() {
+			var timerStarted = false;
+			StartTimer(() => {
+				if (!_manualOverrideEnable) {
+					if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
+						timerStarted = true
+						StopTimer(boilerTimer);
+						boilerTimer = StartTimer(() => {
+							_boilerCfgLed.turnOn();
+							isCallForGas = true;
+							if (_isWellCharged) 
+								StartWellStopColumbia();
+							else 
+								StartColumbiaStopWell();
+						}, 100);
+					} else if (_boilerCfgInput.readSync() === 0) {
+						timerStarted = false;
+						StopBothColumbiaAndWell();
+						StopTimer(boilerTimer);
+						_boilerCfgLed.turnOff();
+						isCallForGas = false;
+					}
 				}
-			}
-		}, INPUT_CHECK_INTERVAL_MILLI);
+			}, INPUT_CHECK_INTERVAL_MILLI);
+		}
+
+		function ManualColumbiaValveControl() {
+			_manualColumbiaButton.on('write', (value) => {
+				if (_manualOverrideEnable) {
+					if (parseInt(value) === 1) {
+						columbiaManualValve = true;
+						StartColumbiaStopWell();
+						_manualWellButton.write(0);
+					}
+					else {
+						columbiaManualValve = false;
+						StopBothColumbiaAndWell();
+					}
+				} else
+					_manualColumbiaButton.write(0);
+			});
+		}
+
+		function ManualWellValveControl() {
+			_manualWellButton.on('write', (value) => {
+				if (_manualOverrideEnable) {
+					if (parseInt(value) === 1) {
+						wellManualValve = true;
+						StartWellStopColumbia();
+						_manualColumbiaButton.write(0);
+					}
+					else {
+						wellManualValve = false;
+						StopBothColumbiaAndWell();
+					}
+				} else
+					_manualWellButton.write(0);
+			});
+		}
 
 		function StopBothColumbiaAndWell() {
 			columbiaManualValve = false;
@@ -192,40 +236,6 @@
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
-
-		function ManualColumbiaValveControl() {
-			_manualColumbiaButton.on('write', (value) => {
-				if (_manualOverrideEnable) {
-					if (parseInt(value) === 1) {
-						columbiaManualValve = true;
-						StartColumbiaStopWell();
-						_manualWellButton.write(0);
-					}
-					else {
-						columbiaManualValve = false;
-						StopBothColumbiaAndWell();
-					}
-				} else
-					_manualColumbiaButton.write(0);
-			});
-		}
-
-		function ManualWellValveControl() {
-			_manualWellButton.on('write', (value) => {
-				if (_manualOverrideEnable) {
-					if (parseInt(value) === 1) {
-						wellManualValve = true;
-						StartWellStopColumbia();
-						_manualColumbiaButton.write(0);
-					}
-					else {
-						wellManualValve = false;
-						StopBothColumbiaAndWell();
-					}
-				} else
-					_manualWellButton.write(0);
-			});
-		}
 	}
 
 	function StartTimer(functionToStart, loopTimeMilli) {
@@ -255,15 +265,34 @@
 	}
 
 	function StartSchedules() {
-		_schedule.scheduleJob(CRON_CSV_WRITE_SCHEDULE, () => {
-	    	_dbo.AddToCsv();
-		});
-		_schedule.scheduleJob(CRON_ARCHIVE_SCHEDULE, () => {
-			_dbo.CreateArchives();
-		});
-		_schedule.scheduleJob(CRON_DB_REFRESH_SCHEDULE, () => {
-			_dbo.RefreshDatabase();
-		});
+		/*
+			File operations while there's a chance of reading/writing to them can be dangerous. 
+			If there is a call for heat or the well is not charged the system is most likely reading/writing data, and
+				if this happens when one of the schedules are to run there is a chance that something will break, which is 
+				not good. 
+			This method will contrinue to try and run the schedule every minute after the initial run.
+			It will rest to default on success.
+		*/
+
+		CreateSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
+		CreateSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives);
+		CreateSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
+
+		function CreateSchedule(originalSchedule, executeFunction) {
+			var newSchedule = originalSchedule;
+			var job = _schedule.scheduleJob(originalSchedule, () => {
+				job.cancel();
+				if (!_isCallForHeat && _isWellCharged) {
+					executeFunction();
+					job.reschedule(originalSchedule);
+				} else {
+					var arr = newSchedule.split(' ');
+					arr[0] = parseInt(arr[0]) + 1;
+					newSchedule = arr.join(' ');
+					job.reschedule(newSchedule);
+				}
+			});
+		}
 	}
 
 	function InitializeValues() {
@@ -272,6 +301,7 @@
 		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
 
+		// --Force the well to be fully charged on a total restart
 		if (_newData[_mapping.WELL_RECHARGE_TIMER] === 0)
 			_newData[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 

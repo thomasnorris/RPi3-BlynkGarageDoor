@@ -29,23 +29,27 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			// --Stats will be false if the db file is not found, and a new db and csv will be created
-			if (!stats) {
+			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
+			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-				_outerFunc.CreateNewEmptyFile(_csvPathWithName);
 				_outerFunc.CreateNewDatabase(_mapping);
-
-				var tempHeaders = [];
-				var csvData = [];
-				Object.keys(_data).forEach((key) => {
-					tempHeaders.push(key);
-					// --Pushing an empty character because something has to be written on creation
-					csvData.push('');
-				});
-				_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
-
 				_outerFunc.WriteToDatabase();
-				_outerFunc.AddToCsv();
+
+				_fs.stat(_csvPathWithName, (err, stats) => {
+					// --Only create a new csv if that is not found either
+					if (!stats) {
+						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
+						var tempHeaders = [];
+						var csvData = [];
+						Object.keys(_data).forEach((key) => {
+							tempHeaders.push(key);
+							// --Pushing an empty character because something has to be written on creation
+							csvData.push('');
+						});
+						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
+						_outerFunc.AddToCsv();
+					}
+				});
 			}
 
 			_data = _outerFunc.ReadDatabase();
@@ -54,7 +58,7 @@ var _outerFunc = module.exports = {
 			var recentData = _outerFunc.GetRecentlyLoggedData();
 
 			Object.keys(recentData).forEach((key) => {
-				// --Will be undefined if from a new CSV and 0 is more friendly
+				// --Will be undefined if a new db was just created
 				if (recentData[key] === undefined)
 					recentData[key] = 0;
 			});
@@ -153,6 +157,7 @@ var _outerFunc = module.exports = {
 	},
 
 	CreateNewEmptyFile: function(filePath) {
+		// --Creates a new file and then closes it so it can be accessed right away
 		_fs.closeSync(_fs.openSync(filePath, 'w'));
 	}
 }
