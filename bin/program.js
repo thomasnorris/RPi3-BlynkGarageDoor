@@ -13,7 +13,7 @@
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *'; // --Every day at 7 am/pm
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *'; // --Every month at 12:00 am on the 1st
-	const CRON_DB_REFRESH_SCHEDULE = '0 0 */1 * *'; // --Every day at 12:00 am
+	const CRON_DB_REFRESH_SCHEDULE = '5 0 */1 * *'; // --Every day at 12:05 am. NOTE: Refresh and archive cannot both happen at the same time!
 
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
