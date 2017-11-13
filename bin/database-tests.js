@@ -8,7 +8,7 @@
 	var _mapping = require('./mapping').GetMapping();
 	var _newData;
 
-	_dbo.LoadDatabase(_mapping, (recentData) => {
+	_dbo.LoadDatabase((recentData) => {
 		_newData = recentData;
 		
 		Fill(() => {

@@ -13,14 +13,12 @@ var _dbPathWithName;
 var _csvFileName = 'Data';
 var _csvPathWithName;
 
+var _mapping = require('./mapping').GetMapping();
 var _data;
 var _headers;
-var _mapping;
 
 var _outerFunc = module.exports = {
-	LoadDatabase: function(mapping, callback, isTest) {
-		_mapping = mapping;
-
+	LoadDatabase: function(callback, isTest) {
 		if (isTest) {
 			_dbFileName += '-test';
 			_csvFileName += '-test';
@@ -151,7 +149,7 @@ var _outerFunc = module.exports = {
 
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
-		_outerFunc.LoadDatabase(_mapping, () => {
+		_outerFunc.LoadDatabase(() => {
 			_outerFunc.AddToDatabase(dataToKeep);
 			callback();
 		});
@@ -164,9 +162,10 @@ var _outerFunc = module.exports = {
 
 	ResetSystemToZero: function() {
 		_outerFunc.CreateArchives(() => {
-			_outerFunc.CreateNewDatabase();
-			_outerFunc.WriteToDatabase();
-			_data = _outerFunc.ReadDatabase();
+			_fs.unlinkSync(_dbPathWithName);
+			_outerFunc.LoadDatabase(() => {
+
+			});
 		});
 	},
 

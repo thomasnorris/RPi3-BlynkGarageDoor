@@ -45,7 +45,7 @@
 
 	// --Start main function
 	_blynk.on('connect', () => {
-		_dbo.LoadDatabase(_mapping, (recentData) => {
+		_dbo.LoadDatabase((recentData) => {
 			_newData = recentData;
 
 			// --All functions split up for readability
@@ -144,7 +144,7 @@
 			StartTimer(() => {
 				if (!_manualOverrideEnable) {
 					if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-						timerStarted = true
+						timerStarted = true;
 						StopTimer(boilerTimer);
 						boilerTimer = StartTimer(() => {
 							_boilerCfgLed.turnOn();
