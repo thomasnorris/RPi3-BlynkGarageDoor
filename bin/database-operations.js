@@ -139,25 +139,22 @@ var _outerFunc = module.exports = {
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
 
-	CreateNewDatabase: function(mapping) {
+	CreateNewDatabase: function() {
 		_data = {};
-		Object.keys(mapping).forEach((key) => {
-			_data[mapping[key]] = [];
+		Object.keys(_mapping).forEach((key) => {
+			_data[_mapping[key]] = [];
 		});
 	},
 	
 	CreateArchives: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION);
-
-		_fs.renameSync(_dbPathWithName, dbArchivePathWithName);
+		_fs.unlinkSync(_dbPathWithName);
+		
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(_mapping, () => {
 			_outerFunc.AddToDatabase(dataToKeep);
 		});
-		
-		_fs.unlinkSync(dbArchivePathWithName);
 
 		function FormatArchivePath(fileName, fileExtension) {
 			var date = _dto.GetCurrentDate().WithoutTime();
@@ -167,7 +164,9 @@ var _outerFunc = module.exports = {
 
 	ResetSystemToZero: function() {
 		_outerFunc.CreateArchives();
-		_outerFunc.CreateNewDatabase();
+		_fs.unlinkSync(_dbPathWithName);
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
+		_outerFunc.CreateNewDatabase(_mapping);
 
 	},
 
