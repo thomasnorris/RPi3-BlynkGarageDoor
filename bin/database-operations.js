@@ -31,8 +31,7 @@ var _outerFunc = module.exports = {
 		_fs.stat(_dbPathWithName, (err, stats) => {
 			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
 			if (!stats || stats.size === 0) {
-				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-				_outerFunc.CreateNewDatabase(_mapping);
+				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
 
 				_fs.stat(_csvPathWithName, (err, stats) => {
@@ -134,26 +133,27 @@ var _outerFunc = module.exports = {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		_fs.unlinkSync(_dbPathWithName);
 
-		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-		_outerFunc.CreateNewDatabase(_mapping);
+		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
 
 	CreateNewDatabase: function() {
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_data = {};
 		Object.keys(_mapping).forEach((key) => {
 			_data[_mapping[key]] = [];
 		});
 	},
 	
-	CreateArchives: function() {
+	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		_fs.unlinkSync(_dbPathWithName);
-		
+
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(_mapping, () => {
 			_outerFunc.AddToDatabase(dataToKeep);
+			callback();
 		});
 
 		function FormatArchivePath(fileName, fileExtension) {
@@ -163,11 +163,11 @@ var _outerFunc = module.exports = {
 	},
 
 	ResetSystemToZero: function() {
-		_outerFunc.CreateArchives();
-		_fs.unlinkSync(_dbPathWithName);
-		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-		_outerFunc.CreateNewDatabase(_mapping);
-
+		_outerFunc.CreateArchives(() => {
+			_outerFunc.CreateNewDatabase();
+			_outerFunc.WriteToDatabase();
+			_data = _outerFunc.ReadDatabase();
+		});
 	},
 
 	CreateNewEmptyFile: function(filePath) {

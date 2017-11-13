@@ -12,15 +12,15 @@
 		_newData = recentData;
 		
 		Fill(() => {
-			console.log('Files created with dummy data.\nEnter \"a\" to run a test archive.\nEnter \"r\" to refresh the database.\nEnter \"rst\" to reset everything.\nPress \"enter\" to exit.');
+			console.log('Files created with dummy data.\nEnter \"a\" to run a test archive.\nEnter \"ref\" to refresh the database.\nEnter \"res\" to reset everything.\nPress \"enter\" to exit.');
 			_rl.on('line', (input) => {
 				if (input == 'a') {
-					_dbo.CreateArchives();
+					_dbo.CreateArchives(() => {});
 					console.log('Archive completed, exiting...');
-				} else if (input === 'r') {
+				} else if (input === 'ref') {
 					_dbo.RefreshDatabase();
 					console.log('Refresh completed, exiting...');
-				} else if (input === 'rst') {
+				} else if (input === 'res') {
 					_dbo.ResetSystemToZero();
 					console.log('Reset completed, exiting...');
 				} else

@@ -270,15 +270,15 @@
 		CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 		// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
-		CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives);
+		CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives, () => {});
 		CreateFileSafeSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
-		function CreateFileSafeSchedule(originalSchedule, executeFunction) {
+		function CreateFileSafeSchedule(originalSchedule, executeFunction, callback) {
 			var newSchedule = originalSchedule;
 			var job = _schedule.scheduleJob(originalSchedule, () => {
 				job.cancel();
 				if (!_isCallForHeat && _isWellCharged) {
-					executeFunction();
+					executeFunction(callback);
 					job.reschedule(originalSchedule);
 				} else {
 					var arr = newSchedule.split(' ');
