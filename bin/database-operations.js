@@ -52,19 +52,14 @@ var _outerFunc = module.exports = {
 			_headers = Object.keys(_data);
 
 			var recentData = _outerFunc.GetRecentlyLoggedData();
-			recentData = _outerFunc.ConvertUndefinedDataToZero(recentData);
+			Object.keys(recentData).forEach((key) => {
+				// --Will be undefined if a new db was just created
+				if (recentData[key] === undefined)
+					recentData[key] = 0;
+			});
 
 			callback(recentData);
 		});
-	},
-	
-	ConvertUndefinedDataToZero: function(recentData) {
-		Object.keys(recentData).forEach((key) => {
-			// --Will be undefined if a new db was just created
-			if (recentData[key] === undefined)
-				recentData[key] = 0;
-		});
-		return recentData;
 	},
 
 	GetRecentlyLoggedData: function() {
