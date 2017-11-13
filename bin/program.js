@@ -12,8 +12,9 @@
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *'; // --Every day at 7 am/pm
-	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *'; // --Every 1st of the month at 12:00 am
+	const CRON_ARCHIVE_SCHEDULE = '0 0 1 1-6,8-12 *'; // --Every 1st of every month excluding July at 12:00 am
 	const CRON_DB_REFRESH_SCHEDULE = '0 0 2-31 */1 *'; // --Every 2-31 days of the month at 12:00 am
+	const CRON_RESET_SCHEDULE = '0 0 1 7 *': // --The 1st of July every year at 12:00 am
 
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 

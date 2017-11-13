@@ -47,7 +47,6 @@ var _outerFunc = module.exports = {
 							csvData.push('');
 						});
 						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
-						_outerFunc.AddToCsv();
 					}
 				});
 			}
@@ -56,17 +55,21 @@ var _outerFunc = module.exports = {
 			_headers = Object.keys(_data);
 
 			var recentData = _outerFunc.GetRecentlyLoggedData();
-
-			Object.keys(recentData).forEach((key) => {
-				// --Will be undefined if a new db was just created
-				if (recentData[key] === undefined)
-					recentData[key] = 0;
-			});
+			recentData = _outerFunc.ConvertUndefinedDataToZero(recentData);
 
 			callback(recentData);
 		});
 	},
 	
+	ConvertUndefinedDataToZero: function(recentData) {
+		Object.keys(recentData).forEach((key) => {
+			// --Will be undefined if a new db was just created
+			if (recentData[key] === undefined)
+				recentData[key] = 0;
+		});
+		return recentData;
+	},
+
 	GetRecentlyLoggedData: function() {
 		var recentData = {};
 		Object.keys(_data).forEach((key) => {
@@ -160,6 +163,12 @@ var _outerFunc = module.exports = {
 			var date = _dto.GetCurrentDate().WithoutTime();
 			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
 		}
+	},
+
+	ResetSystemToZero: function() {
+		_outerFunc.CreateArchives();
+		_outerFunc.CreateNewDatabase();
+
 	},
 
 	CreateNewEmptyFile: function(filePath) {
