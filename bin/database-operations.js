@@ -51,14 +51,14 @@ var _outerFunc = module.exports = {
 			_data = _outerFunc.ReadDatabase();
 			_headers = Object.keys(_data);
 
-			var recentData = _outerFunc.GetRecentlyLoggedData();
-			Object.keys(recentData).forEach((key) => {
+			var data = _outerFunc.GetRecentlyLoggedData();
+			Object.keys(data).forEach((key) => {
 				// --Will be undefined if a new db was just created
-				if (recentData[key] === undefined)
-					recentData[key] = 0;
+				if (data[key] === undefined)
+					data[key] = 0;
 			});
 
-			callback(recentData);
+			callback(data);
 		});
 	},
 
