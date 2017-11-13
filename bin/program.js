@@ -270,7 +270,7 @@
 		CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 		// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
-		CreateFileSafeSchedule(CRON_RESET_SCHEDULE, _dbo.ResetSystemToZero)
+		CreateFileSafeSchedule(CRON_RESET_SCHEDULE, ResetSystemToZero)
 		CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives, () => {});
 		CreateFileSafeSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
@@ -308,5 +308,10 @@
 			_newData[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
+	}
+
+	function ResetSystemToZero() {
+		_newData = _dbo.ResetSystemToZero();
+		InitializeValues();
 	}
 })();

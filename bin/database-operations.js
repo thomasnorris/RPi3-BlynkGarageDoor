@@ -163,8 +163,8 @@ var _outerFunc = module.exports = {
 	ResetSystemToZero: function() {
 		_outerFunc.CreateArchives(() => {
 			_fs.unlinkSync(_dbPathWithName);
-			_outerFunc.LoadDatabase(() => {
-
+			_outerFunc.LoadDatabase((recentData) => {
+				return recentData;
 			});
 		});
 	},
