@@ -270,6 +270,7 @@
 		CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 		// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
+		CreateFileSafeSchedule(CRON_RESET_SCHEDULE, _dbo.ResetSystemToZero)
 		CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives, () => {});
 		CreateFileSafeSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
