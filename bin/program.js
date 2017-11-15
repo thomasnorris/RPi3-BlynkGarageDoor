@@ -12,8 +12,9 @@
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *'; // --Every day at 7 am/pm
-	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *'; // --Every 1st of the month at 12:00 am
+	const CRON_ARCHIVE_SCHEDULE = '0 0 1 1-6,8-12 *'; // --Every 1st of every month excluding July at 12:00 am
 	const CRON_DB_REFRESH_SCHEDULE = '0 0 2-31 */1 *'; // --Every 2-31 days of the month at 12:00 am
+	const CRON_RESET_SCHEDULE = '0 0 1 7 *'; // --The 1st of July every year at 12:00 am
 
 	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
 	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
@@ -37,15 +38,15 @@
 
 	
 	var _mapping = require('./mapping').GetMapping();
-	var _newData;
+	var _data;
 	var _isWellCharged;
 	var _isCallForHeat = false;
 	var _manualOverrideEnable = false;
 
 	// --Start main function
 	_blynk.on('connect', () => {
-		_dbo.LoadDatabase(_mapping, (recentData) => {
-			_newData = recentData;
+		_dbo.LoadDatabase((data) => {
+			_data = data;
 
 			// --All functions split up for readability
 			InitializeValues();
@@ -62,7 +63,7 @@
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
-					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_newData[_mapping.CFH_COUNTER]);
+					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_data[_mapping.CFH_COUNTER]);
 					countLogged = true;
 				}
 				_isCallForHeat = true;
@@ -76,28 +77,28 @@
 	}
 
 	function MonitorWellPressureSwitch() {
-		_isWellCharged = (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
+		_isWellCharged = (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
 		
 		var wellRechargeTimer;
 		var wellRechargeTimerRunning = false;
 		StartTimer(() => {
-			if (_wellPressureSwitchInput.readSync() === 1 && !wellRechargeTimerRunning && _newData[_mapping.WELL_RECHARGE_TIMER] !== RECHARGE_TIME_MINUTES) {
+			if (_wellPressureSwitchInput.readSync() === 1 && !wellRechargeTimerRunning && _data[_mapping.WELL_RECHARGE_TIMER] !== RECHARGE_TIME_MINUTES) {
 				_isWellCharged = false;
 				wellRechargeTimerRunning = true;
 
 				wellRechargeTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++_newData[_mapping.WELL_RECHARGE_TIMER]);
+					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++_data[_mapping.WELL_RECHARGE_TIMER]);
 
-					if (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
+					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
 						_isWellCharged = true;
 						StopTimer(wellRechargeTimer);
-						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_newData[_mapping.WELL_RECHARGE_COUNTER]);
+						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_data[_mapping.WELL_RECHARGE_COUNTER]);
 					} 
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			} 
 			else if (_wellPressureSwitchInput.readSync() === 0) {
-				if (_newData[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
-					_newData[_mapping.WELL_RECHARGE_TIMER] = 0;
+				if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
+					_data[_mapping.WELL_RECHARGE_TIMER] = 0;
 				StopTimer(wellRechargeTimer);
 				wellRechargeTimerRunning = false;
 				_isWellCharged = false;
@@ -143,7 +144,7 @@
 			StartTimer(() => {
 				if (!_manualOverrideEnable) {
 					if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-						timerStarted = true
+						timerStarted = true;
 						StopTimer(boilerTimer);
 						boilerTimer = StartTimer(() => {
 							_boilerCfgLed.turnOn();
@@ -218,7 +219,7 @@
 			if (!wellTimerRunning && isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_wellTimerDisplay, ++_newData[_mapping.WELL_TIMER], true);
+					FormatAndAddToDatabase(_wellTimerDisplay, ++_data[_mapping.WELL_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -232,7 +233,7 @@
 			if (!columbiaTimerRunning && isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_newData[_mapping.COLUMBIA_TIMER], true);
+					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_data[_mapping.COLUMBIA_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -261,7 +262,7 @@
 			display.write(_dto.MinutesAsHoursMins(dataToAdd));
 		else
 			display.write(dataToAdd);
-		_dbo.AddToDatabase(_newData, true);
+		_dbo.AddToDatabase(_data, true);
 	}
 
 	function StartSchedules() {
@@ -269,15 +270,16 @@
 		CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 		// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
-		CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives);
+		CreateFileSafeSchedule(CRON_RESET_SCHEDULE, ResetSystemToZero) // --Does not call _dbo directly
+		CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives, () => {}); // --Empty callback is necessary
 		CreateFileSafeSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
-		function CreateFileSafeSchedule(originalSchedule, executeFunction) {
+		function CreateFileSafeSchedule(originalSchedule, functionToStart, functionCallback) {
 			var newSchedule = originalSchedule;
 			var job = _schedule.scheduleJob(originalSchedule, () => {
 				job.cancel();
 				if (!_isCallForHeat && _isWellCharged) {
-					executeFunction();
+					functionToStart(functionCallback);
 					job.reschedule(originalSchedule);
 				} else {
 					var arr = newSchedule.split(' ');
@@ -288,23 +290,28 @@
 			});
 		}
 
-		function CreateNormalSchedule(schedule, executeFunction) {
+		function CreateNormalSchedule(schedule, functionToStart) {
 			_schedule.scheduleJob(schedule, () => {
-				executeFunction();
+				functionToStart();
 			});
 		}
 	}
 
 	function InitializeValues() {
-		_wellRechargeCounterDisplay.write(_newData[_mapping.WELL_RECHARGE_COUNTER]);
-		_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.COLUMBIA_TIMER]));
-		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_newData[_mapping.WELL_TIMER]));
-		_ecobeeCfhCounterDisplay.write(_newData[_mapping.CFH_COUNTER]);
+		_wellRechargeCounterDisplay.write(_data[_mapping.WELL_RECHARGE_COUNTER]);
+		_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_data[_mapping.COLUMBIA_TIMER]));
+		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_data[_mapping.WELL_TIMER]));
+		_ecobeeCfhCounterDisplay.write(_data[_mapping.CFH_COUNTER]);
 
 		// --Force the well to be fully charged on a total restart
-		if (_newData[_mapping.WELL_RECHARGE_TIMER] === 0)
-			_newData[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
+		if (_data[_mapping.WELL_RECHARGE_TIMER] === 0)
+			_data[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
-		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
+		_wellRechargeTimerDisplay.write(_data[_mapping.WELL_RECHARGE_TIMER]);
+	}
+
+	function ResetSystemToZero() {
+		_data = _dbo.ResetSystemToZero();
+		InitializeValues();
 	}
 })();

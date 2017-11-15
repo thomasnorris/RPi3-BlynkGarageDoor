@@ -13,14 +13,12 @@ var _dbPathWithName;
 var _csvFileName = 'Data';
 var _csvPathWithName;
 
+var _mapping = require('./mapping').GetMapping();
 var _data;
 var _headers;
-var _mapping;
 
 var _outerFunc = module.exports = {
-	LoadDatabase: function(mapping, callback, isTest) {
-		_mapping = mapping;
-
+	LoadDatabase: function(callback, isTest) {
 		if (isTest) {
 			_dbFileName += '-test';
 			_csvFileName += '-test';
@@ -31,8 +29,7 @@ var _outerFunc = module.exports = {
 		_fs.stat(_dbPathWithName, (err, stats) => {
 			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
 			if (!stats || stats.size === 0) {
-				_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-				_outerFunc.CreateNewDatabase(_mapping);
+				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
 
 				_fs.stat(_csvPathWithName, (err, stats) => {
@@ -47,7 +44,6 @@ var _outerFunc = module.exports = {
 							csvData.push('');
 						});
 						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
-						_outerFunc.AddToCsv();
 					}
 				});
 			}
@@ -55,18 +51,17 @@ var _outerFunc = module.exports = {
 			_data = _outerFunc.ReadDatabase();
 			_headers = Object.keys(_data);
 
-			var recentData = _outerFunc.GetRecentlyLoggedData();
-
-			Object.keys(recentData).forEach((key) => {
+			var data = _outerFunc.GetRecentlyLoggedData();
+			Object.keys(data).forEach((key) => {
 				// --Will be undefined if a new db was just created
-				if (recentData[key] === undefined)
-					recentData[key] = 0;
+				if (data[key] === undefined)
+					data[key] = 0;
 			});
 
-			callback(recentData);
+			callback(data);
 		});
 	},
-	
+
 	GetRecentlyLoggedData: function() {
 		var recentData = {};
 		Object.keys(_data).forEach((key) => {
@@ -131,35 +126,42 @@ var _outerFunc = module.exports = {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 		_fs.unlinkSync(_dbPathWithName);
 
-		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
-		_outerFunc.CreateNewDatabase(_mapping);
+		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
 
-	CreateNewDatabase: function(mapping) {
+	CreateNewDatabase: function() {
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_data = {};
-		Object.keys(mapping).forEach((key) => {
-			_data[mapping[key]] = [];
+		Object.keys(_mapping).forEach((key) => {
+			_data[_mapping[key]] = [];
 		});
 	},
 	
-	CreateArchives: function() {
+	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		var dbArchivePathWithName = FormatArchivePath(_dbFileName, DB_FILE_EXTENSION);
+		_fs.unlinkSync(_dbPathWithName);
 
-		_fs.renameSync(_dbPathWithName, dbArchivePathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
-		_outerFunc.LoadDatabase(_mapping, () => {
+		_outerFunc.LoadDatabase(() => {
 			_outerFunc.AddToDatabase(dataToKeep);
+			callback();
 		});
-		
-		_fs.unlinkSync(dbArchivePathWithName);
 
 		function FormatArchivePath(fileName, fileExtension) {
 			var date = _dto.GetCurrentDate().WithoutTime();
 			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
 		}
+	},
+
+	ResetSystemToZero: function() {
+		_outerFunc.CreateArchives(() => {
+			_fs.unlinkSync(_dbPathWithName);
+			_outerFunc.LoadDatabase((recentData) => {
+				return recentData;
+			});
+		});
 	},
 
 	CreateNewEmptyFile: function(filePath) {
