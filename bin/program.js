@@ -28,6 +28,7 @@
 	var _ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9);
 	var _ecobeeCfhLed = new _blynk.WidgetLED(10);
 	var _boilerCfgLed = new _blynk.WidgetLED(11);
+	var _ecobeeCfhTimerDispaly = new _blynk.VirtualPin(12);
 
 	var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
 	var _boilerCfgInput = new _gpio(13, 'in', 'both');
@@ -60,6 +61,8 @@
 
 	function MonitorEcobeeCallForHeat() {
 		var countLogged = false;
+		var timerRunning = false;
+		var cfhTimer;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
@@ -68,10 +71,20 @@
 				}
 				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+				if (!timerRunning) {
+					timerRunning = true;
+					var i = 0;
+					cfhTimer = StartTimer(() => {
+						_ecobeeCfhCounterDisplay.write(++i);
+					}, ALL_TIMERS_INTERVAL_MILLI);
+				}
 			} else {
 				countLogged = false;
 				_isCallForHeat = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+				StopTimer(cfhTimer);
+				timerRunning = false;
+				_ecobeeCfhCounterDisplay.write(0);
 			} 
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
@@ -140,11 +153,11 @@
 		}
 
 		function MonitorBoilerCallForGas() {
-			var timerStarted = false;
+			var timerRunning = false;
 			StartTimer(() => {
 				if (!_manualOverrideEnable) {
-					if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-						timerStarted = true;
+					if (_boilerCfgInput.readSync() === 1 && !timerRunning) {
+						timerRunning = true;
 						StopTimer(boilerTimer);
 						boilerTimer = StartTimer(() => {
 							_boilerCfgLed.turnOn();
@@ -155,7 +168,7 @@
 								StartColumbiaStopWell();
 						}, 100);
 					} else if (_boilerCfgInput.readSync() === 0) {
-						timerStarted = false;
+						timerRunning = false;
 						StopBothColumbiaAndWell();
 						StopTimer(boilerTimer);
 						_boilerCfgLed.turnOff();
@@ -308,6 +321,7 @@
 			_data[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
 		_wellRechargeTimerDisplay.write(_data[_mapping.WELL_RECHARGE_TIMER]);
+		_ecobeeCfhCounterDisplay.write(0);
 	}
 
 	function ResetSystemToZero() {
