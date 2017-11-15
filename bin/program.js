@@ -60,6 +60,7 @@
 
 	function MonitorEcobeeCallForHeat() {
 		var countLogged = false;
+		var cfhTimer;
 		var timerRunning = false;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
@@ -69,10 +70,19 @@
 				}
 				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+				if (!timerRunning) {
+					timerRunning = true;
+					var i = 0;
+					cfhTimer = StartTimer(() => {
+						_ecobeeCfhTimerDisplay.write(++i);
+					}, ALL_TIMERS_INTERVAL_MILLI)
+				}
 			} else {
 				countLogged = false;
 				_isCallForHeat = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+				StopTimer(cfhTimer);
+				timerRunning = false;
 			} 
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
@@ -308,5 +318,7 @@
 			_newData[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
 		_wellRechargeTimerDisplay.write(_newData[_mapping.WELL_RECHARGE_TIMER]);
+
+		_ecobeeCfhTimerDisplay.write(0);
 	}
 })();
