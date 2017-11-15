@@ -1,12 +1,12 @@
 
 (function() {
-	var	blynkLibrary = require('blynk-library');
-	var	blynkAuth = require('./blynk-auth').GetAuth();
-	var	_blynk = new blynkLibrary.Blynk(blynkAuth);
-	var	_gpio = require('onoff').Gpio;
-	var	_schedule = require('node-schedule');
-	var	_dbo = require('./database-operations');
-	var	_dto = require('./date-time-operations');
+	var blynkLibrary = require('blynk-library');
+	var blynkAuth = require('./blynk-auth').GetAuth();
+	var _blynk = new blynkLibrary.Blynk(blynkAuth);
+	var _gpio = require('onoff').Gpio;
+	var _schedule = require('node-schedule');
+	var _dbo = require('./database-operations');
+	var _dto = require('./date-time-operations');
 
 	const RECHARGE_TIME_MINUTES = 90;
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -15,25 +15,26 @@
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 */1 *'; // --Every 1st of the month at 12:00 am
 	const CRON_DB_REFRESH_SCHEDULE = '0 0 2-31 */1 *'; // --Every 2-31 days of the month at 12:00 am
 
-	var	_manualOverrideButton = new _blynk.VirtualPin(0); 
-	var	_manualColumbiaButton = new _blynk.VirtualPin(1); 
-	var	_manualWellButton = new _blynk.VirtualPin(2);
-	var	_wellRechargeTimerDisplay = new _blynk.VirtualPin(3); 
-	var	_wellRechargeCounterDisplay = new _blynk.VirtualPin(4);
-	var	_columbiaTimerDisplay = new _blynk.VirtualPin(5);
-	var	_usingColumbiaLed = new _blynk.WidgetLED(6);
-	var	_wellTimerDisplay = new _blynk.VirtualPin(7);
-	var	_usingWellLed = new _blynk.WidgetLED(8);
-	var	_ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9);
-	var	_ecobeeCfhLed = new _blynk.WidgetLED(10);
-	var	_boilerCfgLed = new _blynk.WidgetLED(11);
+	var _manualOverrideButton = new _blynk.VirtualPin(0); 
+	var _manualColumbiaButton = new _blynk.VirtualPin(1); 
+	var _manualWellButton = new _blynk.VirtualPin(2);
+	var _wellRechargeTimerDisplay = new _blynk.VirtualPin(3); 
+	var _wellRechargeCounterDisplay = new _blynk.VirtualPin(4);
+	var _columbiaTimerDisplay = new _blynk.VirtualPin(5);
+	var _usingColumbiaLed = new _blynk.WidgetLED(6);
+	var _wellTimerDisplay = new _blynk.VirtualPin(7);
+	var _usingWellLed = new _blynk.WidgetLED(8);
+	var _ecobeeCfhCounterDisplay = new _blynk.VirtualPin(9);
+	var _ecobeeCfhLed = new _blynk.WidgetLED(10);
+	var _boilerCfgLed = new _blynk.WidgetLED(11);
+	var _ecobeeCfhTimerDisplay = new _blynk.VirtualPin(12);
 
-	var	_wellPressureSwitchInput = new _gpio(26, 'in', 'both');
-	var	_boilerCfgInput = new _gpio(13, 'in', 'both');
-	var	_ecobeeCfhInput = new _gpio(16, 'in', 'both');
-	var	_columbiaValveRelayOutput = new _gpio(4, 'high');
-	var	_wellValveRelayOutput = new _gpio(17, 'high');
-	var	_boilerStartRelayOutput = new _gpio(27, 'high');
+	var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
+	var _boilerCfgInput = new _gpio(13, 'in', 'both');
+	var _ecobeeCfhInput = new _gpio(16, 'in', 'both');
+	var _columbiaValveRelayOutput = new _gpio(4, 'high');
+	var _wellValveRelayOutput = new _gpio(17, 'high');
+	var _boilerStartRelayOutput = new _gpio(27, 'high');
 
 	
 	var _mapping = require('./mapping').GetMapping();
@@ -59,6 +60,7 @@
 
 	function MonitorEcobeeCallForHeat() {
 		var countLogged = false;
+		var timerRunning = false;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
@@ -139,11 +141,11 @@
 		}
 
 		function MonitorBoilerCallForGas() {
-			var timerStarted = false;
+			var timerRunning = false;
 			StartTimer(() => {
 				if (!_manualOverrideEnable) {
-					if (_boilerCfgInput.readSync() === 1 && !timerStarted) {
-						timerStarted = true
+					if (_boilerCfgInput.readSync() === 1 && !timerRunning) {
+						timerRunning = true
 						StopTimer(boilerTimer);
 						boilerTimer = StartTimer(() => {
 							_boilerCfgLed.turnOn();
@@ -154,7 +156,7 @@
 								StartColumbiaStopWell();
 						}, 100);
 					} else if (_boilerCfgInput.readSync() === 0) {
-						timerStarted = false;
+						timerRunning = false;
 						StopBothColumbiaAndWell();
 						StopTimer(boilerTimer);
 						_boilerCfgLed.turnOff();
