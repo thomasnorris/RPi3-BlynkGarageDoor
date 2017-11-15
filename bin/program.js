@@ -75,7 +75,7 @@
 					timerRunning = true;
 					var i = 0;
 					cfhTimer = StartTimer(() => {
-						_ecobeeCfhCounterDisplay.write(++i);
+						_ecobeeCfhCounterDisplay.write(_dto.MinutesAsHoursMins(++i));
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			} else {
@@ -84,7 +84,7 @@
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 				StopTimer(cfhTimer);
 				timerRunning = false;
-				_ecobeeCfhCounterDisplay.write(0);
+				_ecobeeCfhCounterDisplay.write(_dto.MinutesAsHoursMins(0));
 			} 
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
@@ -321,7 +321,7 @@
 			_data[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
 		_wellRechargeTimerDisplay.write(_data[_mapping.WELL_RECHARGE_TIMER]);
-		_ecobeeCfhCounterDisplay.write(0);
+		_ecobeeCfhCounterDisplay.write(_dto.MinutesAsHoursMins(0));
 	}
 
 	function ResetSystemToZero() {
