@@ -32,6 +32,7 @@
 	var _ecobeeCfhLed = new _blynk.WidgetLED(10);
 	var _boilerCfgLed = new _blynk.WidgetLED(11);
 	var _ecobeeCfhTimerDisplay = new _blynk.VirtualPin(12);
+	var _systemUptime = new _blynk.VirtualPin(13);
 
 	var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
 	var _boilerCfgInput = new _gpio(13, 'in', 'both');
@@ -39,7 +40,6 @@
 	var _columbiaValveRelayOutput = new _gpio(4, 'high');
 	var _wellValveRelayOutput = new _gpio(17, 'high');
 	var _boilerStartRelayOutput = new _gpio(27, 'high');
-
 	
 	var _mapping = require('./mapping').GetMapping();
 	var _data;
@@ -57,7 +57,7 @@
 			StartSchedules();
 			MonitorEcobeeCallForHeat();
 			MonitorWellPressureSwitch();
-			MonitorManualValveOverridesAndBoilerCallForGas();
+			MonitorValvesAndCallForGas();
 		});
 	});
 	// --End main function
@@ -122,7 +122,7 @@
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
 
-	function MonitorManualValveOverridesAndBoilerCallForGas() {
+	function MonitorValvesAndCallForGas() {
 		var boilerTimer;
 		var wellTimer;
 		var wellTimerRunning = false;
@@ -220,8 +220,8 @@
 			wellManualValve = false;
 			columbiaTimerRunning = false;
 			wellTimerRunning = false;
-			StopTimer(wellTimer, wellTimerRunning);
-			StopTimer(columbiaTimer, columbiaTimerRunning);
+			StopTimer(wellTimer);
+			StopTimer(columbiaTimer);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 		}
@@ -325,6 +325,12 @@
 
 		_wellRechargeTimerDisplay.write(_data[_mapping.WELL_RECHARGE_TIMER]);
 		_ecobeeCfhTimerDisplay.write(_dto.MinutesAsHoursMins(0));
+
+		var i = 0;
+		_systemUptime.write(_dto.MinutesAsHoursMins(i));
+		StartTimer(() => {
+			_systemUptime.write(_dto.MinutesAsHoursMins(++i));
+		}, ALL_TIMERS_INTERVAL_MILLI);
 	}
 
 	function ResetSystemToZero() {
