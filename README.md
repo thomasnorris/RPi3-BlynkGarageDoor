@@ -2,6 +2,10 @@
 - This project is a RPi3 replacement for the basement PLC gas-switching system with added features. 
 - Uses [Blynk](http://www.blynk.cc/) for monitoring and control and JavaScript (via [Node.Js](https://nodejs.org/en/)) as the language of choice.
 - The Pi's timezone must be manually set for task scheduling to work as expected. Follow [these](https://victorhurdugaci.com/raspberry-pi-sync-date-and-time) instructions for getting it set up.
+- This project is configured to run on a Blynk server hosted on the same Pi. Instructions for this are [here](https://github.com/blynkkk/blynk-server#blynk-server). All of the default ports are used.
+	- The admin portal is at `https://IP_OF_PI:9443/admin`
+	- The port to use in the Blynk app is 8442
+	- An admin user will be created the first time the server is run
 
 ## Installation
 - Clone this repo with SSH or HTTPS, then change directory into the `bin` folder
