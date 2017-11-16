@@ -1,12 +1,15 @@
 
 (function() {
-	var blynkLibrary = require('blynk-library');
-	var blynkAuth = require('./blynk-auth').GetAuth();
-	var _blynk = new blynkLibrary.Blynk(blynkAuth);
 	var _gpio = require('onoff').Gpio;
 	var _schedule = require('node-schedule');
 	var _dbo = require('./database-operations');
 	var _dto = require('./date-time-operations');
+
+	var blynkLibrary = require('blynk-library');
+	var blynkAuth = require('./blynk-auth').GetAuth();
+	var _blynk = new blynkLibrary.Blynk(blynkAuth, options = {
+		connector: new blynkLibrary.TcpClient(
+			options = { addr: '127.0.0.1', port: 8442 })});
 
 	const RECHARGE_TIME_MINUTES = 90;
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
