@@ -17,7 +17,7 @@ sudo npm install pm2 -g
 sudo npm install
 
 # --Finishing up
-echo -e "\n${GREEN}Install is complete!${NC}\nEnter your ${GREEN}Blynk Auth Token${NC}. This will be in an email from Blynk."
+echo -e "\n${GREEN}Install is complete!${NC}\nEnter your ${GREEN}Blynk Auth Token${NC}. This can be found in the Blynk app or in an email from Blynk."
 read authToken
 
 blynkAuthTemplate="module.exports = { GetAuth: function() { return \"$authToken\"; } }"
