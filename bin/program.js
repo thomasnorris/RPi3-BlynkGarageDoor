@@ -12,7 +12,7 @@
 			options = { addr: '127.0.0.1', port: 8442 })});
 
 	const RECHARGE_TIME_MINUTES = 90;
-	const ALL_TIMERS_INTERVAL_MILLI = 60000;
+	const ALL_TIMERS_INTERVAL_MILLI = 1000;
 	const INPUT_CHECK_INTERVAL_MILLI = 50;
 	const CRON_CSV_WRITE_SCHEDULE = '0 7,19 * * *'; // --Every day at 7 am/pm
 	const CRON_ARCHIVE_SCHEDULE = '0 0 1 1-6,8-12 *'; // --Every 1st of every month excluding July at 12:00 am
@@ -77,7 +77,8 @@
 				}
 				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-				StopTimer(boilerOfftimeTimer, boilerOfftimeTimerRunning);
+				StopTimer(boilerOfftimeTimer);
+				boilerOfftimeTimerRunning = false;
 				_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(0));
 				if (!cfhTimerRunning) {
 					cfhTimerRunning = true;
@@ -97,9 +98,11 @@
 				countLogged = false;
 				_isCallForHeat = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-				StopTimer(cfhTimer, cfhTimerRunning);
+				StopTimer(cfhTimer);
+				cfhTimerRunning = false;
 				_ecobeeCfhTimerDisplay.write(_dto.MinutesAsHoursMins(0));
 			} 
+
 		}, INPUT_CHECK_INTERVAL_MILLI);
 	}
 
@@ -126,7 +129,8 @@
 			else if (_wellPressureSwitchInput.readSync() === 0) {
 				if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
 					_data[_mapping.WELL_RECHARGE_TIMER] = 0;
-				StopTimer(wellRechargeTimer, wellRechargeTimerRunning);
+				StopTimer(wellRechargeTimer);
+				wellRechargeTimerRunning = false;
 				_isWellCharged = false;
 			}
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -228,15 +232,18 @@
 		function StopBothColumbiaAndWell() {
 			columbiaManualValve = false;
 			wellManualValve = false;
-			StopTimer(wellTimer, wellTimerRunning);
-			StopTimer(columbiaTimer, columbiaTimerRunning);
+			columbiaTimerRunning = false;
+			wellTimerRunning = false;
+			StopTimer(wellTimer);
+			StopTimer(columbiaTimer);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 		}
 
 		function StartWellStopColumbia() {
 			columbiaManualValve = false;
-			StopTimer(columbiaTimer, columbiaTimerRunning);
+			columbiaTimerRunning = false;
+			StopTimer(columbiaTimer);
 			EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			DisableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			if (!wellTimerRunning && isCallForGas) {
@@ -249,7 +256,8 @@
 
 		function StartColumbiaStopWell() {
 			wellManualValve = false;
-			StopTimer(wellTimer, wellTimerRunning);
+			wellTimerRunning = false;
+			StopTimer(wellTimer);
 			EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
 			DisableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
 			if (!columbiaTimerRunning && isCallForGas) {
@@ -265,9 +273,8 @@
 		return setInterval(functionToStart, loopTimeMilli);
 	}
 
-	function StopTimer(timer, bool) {
+	function StopTimer(timer) {
 		clearInterval(timer);
-		bool = false;
 	}
 
 	function EnableRelayAndLed(relay, led) {
