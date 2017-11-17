@@ -32,7 +32,8 @@
 	var _ecobeeCfhLed = new _blynk.WidgetLED(10);
 	var _boilerCfgLed = new _blynk.WidgetLED(11);
 	var _ecobeeCfhTimerDisplay = new _blynk.VirtualPin(12);
-	var _systemUptime = new _blynk.VirtualPin(13);
+	var _systemUptimeTimerDisplay = new _blynk.VirtualPin(13);
+	var _BoilerOfftimeTimerDisplay = new _blynk.VirtualPin(14);
 
 	var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
 	var _boilerCfgInput = new _gpio(13, 'in', 'both');
@@ -66,6 +67,8 @@
 		var countLogged = false;
 		var timerRunning = false;
 		var cfhTimer;
+		var boilerOfftimeTimerRunning = false;
+		var boilerOfftimeTimer;
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
@@ -74,6 +77,9 @@
 				}
 				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+				StopTimer(boilerOfftimeTimer);
+				boilerOfftimeTimerRunning = false;
+				_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(0));
 				if (!timerRunning) {
 					timerRunning = true;
 					var i = 0;
@@ -82,6 +88,13 @@
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			} else {
+				if (!boilerOfftimeTimerRunning) {
+					boilerOfftimeTimerRunning = true;
+					var i = 0;
+					boilerOfftimeTimer = StartTimer(() => {
+						_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(++i));
+					}, ALL_TIMERS_INTERVAL_MILLI)
+				}
 				countLogged = false;
 				_isCallForHeat = false;
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
@@ -327,10 +340,12 @@
 		_ecobeeCfhTimerDisplay.write(_dto.MinutesAsHoursMins(0));
 
 		var i = 0;
-		_systemUptime.write(_dto.MinutesAsHoursMins(i));
+		_systemUptimeTimerDisplay.write(_dto.MinutesAsHoursMins(i));
 		StartTimer(() => {
-			_systemUptime.write(_dto.MinutesAsHoursMins(++i));
+			_systemUptimeTimerDisplay.write(_dto.MinutesAsHoursMins(++i));
 		}, ALL_TIMERS_INTERVAL_MILLI);
+
+		_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(i));
 	}
 
 	function ResetSystemToZero() {
