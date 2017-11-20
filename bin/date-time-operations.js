@@ -50,6 +50,17 @@ var _outerFunc = module.exports = {
 		h = h < 10 ? '0' + h : h;
 		m = m < 10 ? '0' + m : m;
 
-		return h + '.' + m;
-	}
+		function PeriodDelimiter() {
+			return h + '.' + m;
+		}
+
+		function PrettyPrint() {
+			return h + 'h ' + m + 'm';
+		}
+
+		return {
+			PeriodDelimiter: PeriodDelimiter,
+			PrettyPrint: PrettyPrint
+		}
+	},
 }
