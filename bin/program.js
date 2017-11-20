@@ -79,12 +79,12 @@
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 				StopTimer(boilerOfftimeTimer);
 				boilerOfftimeTimerRunning = false;
-				_BoilerOfftimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(0));
+				_BoilerOfftimeTimerDisplay.write(PrettyPrint(0));
 				if (!cfhTimerRunning) {
 					cfhTimerRunning = true;
 					var i = 0;
 					cfhTimer = StartTimer(() => {
-						_ecobeeCfhTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(++i));
+						_ecobeeCfhTimerDisplay.write(PrettyPrint(++i));
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			} else {
@@ -92,7 +92,7 @@
 					boilerOfftimeTimerRunning = true;
 					var i = 0;
 					boilerOfftimeTimer = StartTimer(() => {
-						_BoilerOfftimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(++i));
+						_BoilerOfftimeTimerDisplay.write(PrettyPrint(++i));
 					}, ALL_TIMERS_INTERVAL_MILLI)
 				}
 				countLogged = false;
@@ -100,7 +100,7 @@
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 				StopTimer(cfhTimer);
 				cfhTimerRunning = false;
-				_ecobeeCfhTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(0));
+				_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
 			} 
 
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -287,9 +287,9 @@
 		led.turnOff();
 	}
 
-	function AddToDatabaseAndDisplay(display, dataToAdd, needsFormatting) {
-		if (needsFormatting)
-			display.write(_dto.ConvertMinutesToHoursAndMintues(dataToAdd));
+	function AddToDatabaseAndDisplay(display, dataToAdd, prettyPrint) {
+		if (prettyPrint)
+			display.write(PrettyPrint(dataToAdd));
 		else
 			display.write(dataToAdd);
 		_dbo.AddToDatabase(_data, true);
@@ -329,8 +329,8 @@
 
 	function InitializeValues() {
 		_wellRechargeCounterDisplay.write(_data[_mapping.WELL_RECHARGE_COUNTER]);
-		_columbiaTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(_data[_mapping.COLUMBIA_TIMER]));
-		_wellTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(_data[_mapping.WELL_TIMER]));
+		_columbiaTimerDisplay.write(PrettyPrint(_data[_mapping.COLUMBIA_TIMER]));
+		_wellTimerDisplay.write(PrettyPrint(_data[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_data[_mapping.CFH_COUNTER]);
 
 		// --Force the well to be fully charged on a total restart
@@ -338,19 +338,23 @@
 			_data[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
 		_wellRechargeTimerDisplay.write(_data[_mapping.WELL_RECHARGE_TIMER]);
-		_ecobeeCfhTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(0));
+		_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
 
 		var i = 0;
-		_systemUptimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(i));
+		_systemUptimeTimerDisplay.write(PrettyPrint(i));
 		StartTimer(() => {
-			_systemUptimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(++i));
+			_systemUptimeTimerDisplay.write(PrettyPrint(++i));
 		}, ALL_TIMERS_INTERVAL_MILLI);
 
-		_BoilerOfftimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(i));
+		_BoilerOfftimeTimerDisplay.write(PrettyPrint(0));
 	}
 
 	function ResetSystemToZero() {
 		_data = _dbo.ResetSystemToZero();
 		InitializeValues();
+	}
+
+	function PrettyPrint(min) {
+		return _dto.ConvertMinutesToHoursAndMintues(min).PrettyPrint();
 	}
 })();
