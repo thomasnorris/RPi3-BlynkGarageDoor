@@ -350,8 +350,10 @@
 	}
 
 	function ResetSystemToZero() {
-		_data = _dbo.ResetSystemToZero();
-		InitializeValues();
+		_dbo.ResetSystemToZero((data) => {
+			_data = data;
+			InitializeValues();
+		});
 	}
 
 	function PrettyPrint(min) {

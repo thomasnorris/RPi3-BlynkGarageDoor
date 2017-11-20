@@ -19,7 +19,7 @@
 				else if (input === 'ref') 
 					DoAThing(_dbo.RefreshDatabase, "Refresh");
 				else if (input === 'res') 
-					DoAThing(_dbo.ResetSystemToZero, "Reset");
+					DoAThing(_dbo.ResetSystemToZero, "Reset", (data) => {});
 				else
 					DoAThing(process.exit, "Nothing");
 				_rl.close();

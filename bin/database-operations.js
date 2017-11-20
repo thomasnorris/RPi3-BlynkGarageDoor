@@ -155,11 +155,11 @@ var _outerFunc = module.exports = {
 		}
 	},
 
-	ResetSystemToZero: function() {
+	ResetSystemToZero: function(callback) {
 		_outerFunc.CreateArchives(() => {
 			_fs.unlinkSync(_dbPathWithName);
 			_outerFunc.LoadDatabase((recentData) => {
-				return recentData;
+				callback(recentData);
 			});
 		});
 	},
