@@ -72,19 +72,19 @@
 		StartTimer(() => {
 			if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 				if (!countLogged) {
-					FormatAndAddToDatabase(_ecobeeCfhCounterDisplay, ++_data[_mapping.CFH_COUNTER]);
+					AddToDatabaseAndDisplay(_ecobeeCfhCounterDisplay, ++_data[_mapping.CFH_COUNTER]);
 					countLogged = true;
 				}
 				_isCallForHeat = true;
 				EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 				StopTimer(boilerOfftimeTimer);
 				boilerOfftimeTimerRunning = false;
-				_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(0));
+				_BoilerOfftimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(0));
 				if (!cfhTimerRunning) {
 					cfhTimerRunning = true;
 					var i = 0;
 					cfhTimer = StartTimer(() => {
-						_ecobeeCfhTimerDisplay.write(_dto.MinutesAsHoursMins(++i));
+						_ecobeeCfhTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(++i));
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			} else {
@@ -92,7 +92,7 @@
 					boilerOfftimeTimerRunning = true;
 					var i = 0;
 					boilerOfftimeTimer = StartTimer(() => {
-						_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(++i));
+						_BoilerOfftimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(++i));
 					}, ALL_TIMERS_INTERVAL_MILLI)
 				}
 				countLogged = false;
@@ -100,7 +100,7 @@
 				DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 				StopTimer(cfhTimer);
 				cfhTimerRunning = false;
-				_ecobeeCfhTimerDisplay.write(_dto.MinutesAsHoursMins(0));
+				_ecobeeCfhTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(0));
 			} 
 
 		}, INPUT_CHECK_INTERVAL_MILLI);
@@ -117,12 +117,12 @@
 				wellRechargeTimerRunning = true;
 
 				wellRechargeTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_wellRechargeTimerDisplay, ++_data[_mapping.WELL_RECHARGE_TIMER]);
+					AddToDatabaseAndDisplay(_wellRechargeTimerDisplay, ++_data[_mapping.WELL_RECHARGE_TIMER]);
 
 					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
 						_isWellCharged = true;
 						StopTimer(wellRechargeTimer);
-						FormatAndAddToDatabase(_wellRechargeCounterDisplay, ++_data[_mapping.WELL_RECHARGE_COUNTER]);
+						AddToDatabaseAndDisplay(_wellRechargeCounterDisplay, ++_data[_mapping.WELL_RECHARGE_COUNTER]);
 					} 
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			} 
@@ -249,7 +249,7 @@
 			if (!wellTimerRunning && isCallForGas) {
 				wellTimerRunning = true;
 				wellTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_wellTimerDisplay, ++_data[_mapping.WELL_TIMER], true);
+					AddToDatabaseAndDisplay(_wellTimerDisplay, ++_data[_mapping.WELL_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -263,7 +263,7 @@
 			if (!columbiaTimerRunning && isCallForGas) {
 				columbiaTimerRunning = true;
 				columbiaTimer = StartTimer(() => {
-					FormatAndAddToDatabase(_columbiaTimerDisplay, ++_data[_mapping.COLUMBIA_TIMER], true);
+					AddToDatabaseAndDisplay(_columbiaTimerDisplay, ++_data[_mapping.COLUMBIA_TIMER], true);
 				}, ALL_TIMERS_INTERVAL_MILLI);
 			}
 		}
@@ -287,9 +287,9 @@
 		led.turnOff();
 	}
 
-	function FormatAndAddToDatabase(display, dataToAdd, needsFormatting) {
+	function AddToDatabaseAndDisplay(display, dataToAdd, needsFormatting) {
 		if (needsFormatting)
-			display.write(_dto.MinutesAsHoursMins(dataToAdd));
+			display.write(_dto.ConvertMinutesToHoursAndMintues(dataToAdd));
 		else
 			display.write(dataToAdd);
 		_dbo.AddToDatabase(_data, true);
@@ -329,8 +329,8 @@
 
 	function InitializeValues() {
 		_wellRechargeCounterDisplay.write(_data[_mapping.WELL_RECHARGE_COUNTER]);
-		_columbiaTimerDisplay.write(_dto.MinutesAsHoursMins(_data[_mapping.COLUMBIA_TIMER]));
-		_wellTimerDisplay.write(_dto.MinutesAsHoursMins(_data[_mapping.WELL_TIMER]));
+		_columbiaTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(_data[_mapping.COLUMBIA_TIMER]));
+		_wellTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(_data[_mapping.WELL_TIMER]));
 		_ecobeeCfhCounterDisplay.write(_data[_mapping.CFH_COUNTER]);
 
 		// --Force the well to be fully charged on a total restart
@@ -338,15 +338,15 @@
 			_data[_mapping.WELL_RECHARGE_TIMER] = RECHARGE_TIME_MINUTES;
 
 		_wellRechargeTimerDisplay.write(_data[_mapping.WELL_RECHARGE_TIMER]);
-		_ecobeeCfhTimerDisplay.write(_dto.MinutesAsHoursMins(0));
+		_ecobeeCfhTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(0));
 
 		var i = 0;
-		_systemUptimeTimerDisplay.write(_dto.MinutesAsHoursMins(i));
+		_systemUptimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(i));
 		StartTimer(() => {
-			_systemUptimeTimerDisplay.write(_dto.MinutesAsHoursMins(++i));
+			_systemUptimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(++i));
 		}, ALL_TIMERS_INTERVAL_MILLI);
 
-		_BoilerOfftimeTimerDisplay.write(_dto.MinutesAsHoursMins(i));
+		_BoilerOfftimeTimerDisplay.write(_dto.ConvertMinutesToHoursAndMintues(i));
 	}
 
 	function ResetSystemToZero() {

@@ -83,7 +83,7 @@ var _outerFunc = module.exports = {
 			}
 			var num = csvData[keys[i]];
 			if (num !== undefined)
-				csvData[keys[i]] = _dto.MinutesAsHoursMins(num);
+				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMintues(num);
 			i++;
 		}
 
