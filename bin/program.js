@@ -1,15 +1,35 @@
 
 (function() {
+	var tcpPortUsed = require('tcp-port-used');
+	var blynkLibrary = require('blynk-library');
+	var blynkAuth = require('./blynk-auth').GetAuth();
+
+	// --These must match the hardware plain tcp/ip port and the ip of the server
+	var blynkServerPort = 8442;
+	var blynkServerIp = 'localhost';
+
+	PortCheck();
+
+	// --Blynk will only connect once the server is up and running
+	function PortCheck() {
+		tcpPortUsed.check(blynkServerPort, blynkServerIp).then((inUse) => {
+			if (!inUse)
+				PortCheck();
+			else {
+				var blynk = new blynkLibrary.Blynk(blynkAuth, options = {
+					connector: new blynkLibrary.TcpClient(
+						options = { addr: blynkServerIp, port: blynkServerPort })});
+				RunProgram(blynk);
+			}
+		})
+	}
+})();
+
+function RunProgram(_blynk) {
 	var _gpio = require('onoff').Gpio;
 	var _schedule = require('node-schedule');
 	var _dbo = require('./database-operations');
 	var _dto = require('./date-time-operations');
-
-	var blynkLibrary = require('blynk-library');
-	var blynkAuth = require('./blynk-auth').GetAuth();
-	var _blynk = new blynkLibrary.Blynk(blynkAuth, options = {
-		connector: new blynkLibrary.TcpClient(
-			options = { addr: '127.0.0.1', port: 8442 })});
 
 	const RECHARGE_TIME_MINUTES = 90;
 	const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -49,17 +69,15 @@
 	var _manualOverrideEnable = false;
 
 	// --Start main function
-	_blynk.on('connect', () => {
-		_dbo.LoadDatabase((data) => {
-			_data = data;
+	_dbo.LoadDatabase((data) => {
+		_data = data;
 
-			// --All functions split up for readability
-			InitializeValues();
-			StartSchedules();
-			MonitorEcobeeCallForHeat();
-			MonitorWellPressureSwitch();
-			MonitorValvesAndCallForGas();
-		});
+		// --All functions split up for readability
+		InitializeValues();
+		StartSchedules();
+		MonitorEcobeeCallForHeat();
+		MonitorWellPressureSwitch();
+		MonitorValvesAndCallForGas();
 	});
 	// --End main function
 
@@ -359,4 +377,5 @@
 	function PrettyPrint(min) {
 		return _dto.ConvertMinutesToHoursAndMintues(min).PrettyPrint();
 	}
-})();
+
+}
