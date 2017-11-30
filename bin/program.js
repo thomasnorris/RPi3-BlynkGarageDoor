@@ -3,7 +3,6 @@
 	var tcpPortUsed = require('tcp-port-used');
 	var blynkLibrary = require('blynk-library');
 	var blynkAuth = require('./blynk-auth').GetAuth();
-
 	// --These must match the hardware plain tcp/ip port and the ip of the server
 	var blynkServerPort = 8442;
 	var blynkServerIp = 'localhost';
@@ -11,21 +10,22 @@
 	PortCheck();
 
 	// --Blynk will only connect once the server is up and running
+	var _blynk;
 	function PortCheck() {
 		tcpPortUsed.check(blynkServerPort, blynkServerIp).then((inUse) => {
 			if (!inUse)
 				PortCheck();
 			else {
-				var blynk = new blynkLibrary.Blynk(blynkAuth, options = {
+				_blynk = new blynkLibrary.Blynk(blynkAuth, options = {
 					connector: new blynkLibrary.TcpClient(
 						options = { addr: blynkServerIp, port: blynkServerPort })});
-				RunProgram(blynk);
+				Run();
 			}
 		})
 	}
 })();
 
-function RunProgram(_blynk) {
+function Run() {
 	var _gpio = require('onoff').Gpio;
 	var _schedule = require('node-schedule');
 	var _dbo = require('./database-operations');
