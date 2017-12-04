@@ -1,6 +1,6 @@
 
 var _outerFunc = module.exports = {
-	GetCurrentDate: function() {
+	GetCurrentDateAndTime: function() {
 		var today = new Date();
 		var day = today.getDate();
 		var month = today.getMonth() + 1;
@@ -12,36 +12,36 @@ var _outerFunc = module.exports = {
 
 		var date = month + '-' + day + '-' + today.getFullYear();
 
-		function WithTime() {
-			var hour = today.getHours();
-			var min = today.getMinutes();
-			var postfix;
+		var hour = today.getHours();
+		var min = today.getMinutes();
+		var postfix;
 
-			if (min < 10)
-				min = '0' + min;
-			if (hour > 12) {
-				hour -= 12;
-				postfix = 'PM';
-			} else if (hour == 12) 
-				postfix = 'PM';
-			else if (hour == 0) {
-			  	hour = 12;
-			  	postfix = 'AM';
-			} else
-			  postfix = 'AM';
+		if (min < 10)
+			min = '0' + min;
+		if (hour > 12) {
+			hour -= 12;
+			postfix = 'PM';
+		} else if (hour == 12)
+			postfix = 'PM';
+		else if (hour == 0) {
+			hour = 12;
+			postfix = 'AM';
+		} else
+			postfix = 'AM';
 
-			return  date + ' - ' + hour + ':' + min + ' ' + postfix;
-		}
-
-		function WithoutTime() {
-			return date;
-		}
-
-		return {
-			WithTime: WithTime,
-			WithoutTime: WithoutTime
-		}
+		return  date + ' - ' + hour + ':' + min + ' ' + postfix;
 	}, 
+
+	GetCurrentMonthAsStringWithYear: function() {
+		var monthNames = ["January", "February", "March", "April", "May", "June",
+		  "July", "August", "September", "October", "November", "December"
+		];
+		var date = new Date();
+		var year = date.getFullYear();
+		var monthString = monthNames[date.getMonth()];
+
+		return monthString + '-' + year;
+	},
 
 	ConvertMinutesToHoursAndMintues: function(minutes) {
 		var h = Math.floor(minutes / 60);

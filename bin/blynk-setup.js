@@ -29,7 +29,7 @@ var _outerFunc = module.exports = {
 								_fs.closeSync(_fs.openSync(_logName, 'w'));
 
 							var stream = _fs.createWriteStream(_logName, { flags: 'a' });
-							stream.write(_dto.GetCurrentDate().WithTime() + ': ' + blynkErr);
+							stream.write(_dto.GetCurrentDateAndTime() + ': ' + blynkErr);
 							stream.end('\n');
 						});
 					});

@@ -115,7 +115,7 @@ var _outerFunc = module.exports = {
 		var startIndex;
 		// --Conditionally add the date
 		if (needDate) {
-			_data[_headers[0]].push(_dto.GetCurrentDate().WithTime());
+			_data[_headers[0]].push(_dto.GetCurrentDateAndTime());
 			startIndex = 1;
 		} else
 			startIndex = 0;
@@ -164,7 +164,7 @@ var _outerFunc = module.exports = {
 		});
 
 		function FormatArchivePath(fileName, fileExtension) {
-			var date = _dto.GetCurrentDate().WithoutTime();
+			var date = _dto.GetCurrentMonthAsStringWithYear();
 			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
 		}
 	},
