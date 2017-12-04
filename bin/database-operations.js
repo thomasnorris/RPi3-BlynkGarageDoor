@@ -3,8 +3,8 @@ var _fs = require('fs');
 var _csvWriter = require('csv-write-stream');
 var _dto = require('./date-time-operations');
 
-const DATA_PATH = __dirname + '/data/';
-const ARCHIVE_PATH = DATA_PATH + '/archive/';
+const DATA_PATH = __dirname + '/Boiler Data/';
+const ARCHIVE_PATH = DATA_PATH + '/Archives/';
 const DB_FILE_EXTENSION = '.json';
 const CSV_FILE_EXTENSION = '.csv';
 
@@ -16,6 +16,19 @@ var _csvPathWithName;
 var _mapping = require('./mapping').GetMapping();
 var _data;
 var _headers;
+
+(function() {
+	_fs.stat(DATA_PATH, (err, stats) => {
+		if (!stats) {
+			_fs.mkdirSync(DATA_PATH);
+			_fs.mkdirSync(ARCHIVE_PATH);
+		}
+		_fs.stat(ARCHIVE_PATH, (err, stats) => {
+			if (!stats)
+				_fs.mkdirSync(ARCHIVE_PATH);
+		});
+	});
+})();
 
 var _outerFunc = module.exports = {
 	LoadDatabase: function(callback, isTest) {
