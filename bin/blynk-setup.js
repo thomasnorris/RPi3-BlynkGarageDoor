@@ -6,8 +6,7 @@ var _outerFunc = module.exports = {
 		var _logName = 'blynk-errors.txt';
 		var _tcpPortUsed = require('tcp-port-used');
 		var _blynkLibrary = require('blynk-library');
-		//var _blynkAuth = require('./blynk-auth').GetAuth();
-		var _blynkAuth = ''
+		var _blynkAuth = require('./blynk-auth').GetAuth();
 
 		// --These must match the hardware plain tcp/ip port and the ip of the server
 		var blynkServerPort = 8442; //--8442 is the default
