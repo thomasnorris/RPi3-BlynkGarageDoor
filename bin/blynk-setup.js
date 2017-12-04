@@ -1,5 +1,4 @@
 
-
 var _outerFunc = module.exports = {
 	Setup: function(callback) {
 		var tcpPortUsed = require('tcp-port-used');
