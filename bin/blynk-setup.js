@@ -30,8 +30,8 @@ var _outerFunc = module.exports = {
 
 							var stream = _fs.createWriteStream(_logName, { flags: 'a' });
 							stream.write(_dto.GetCurrentDate().WithTime() + ': ' + blynkErr);
-							stream.end('\n')
-						})
+							stream.end('\n');
+						});
 					});
 
 					// --Small delay is necessary otherwise Blynk will error right away
