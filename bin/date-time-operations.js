@@ -40,7 +40,7 @@ var _outerFunc = module.exports = {
 		var year = date.getFullYear();
 		var monthString = monthNames[date.getMonth()];
 
-		return monthString + '-' + year;
+		return monthString + ' ' + year;
 	},
 
 	ConvertMinutesToHoursAndMintues: function(minutes) {

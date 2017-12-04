@@ -8,9 +8,9 @@ const ARCHIVE_PATH = DATA_PATH + '/Archives/';
 const DB_FILE_EXTENSION = '.json';
 const CSV_FILE_EXTENSION = '.csv';
 
-var _dbFileName = 'Data';
+var _dbFileName = 'db';
 var _dbPathWithName;
-var _csvFileName = 'Data';
+var _csvFileName = 'Boiler Data';
 var _csvPathWithName;
 
 var _mapping = require('./mapping').GetMapping();
@@ -34,8 +34,8 @@ var _headers;
 var _outerFunc = module.exports = {
 	LoadDatabase: function(callback, isTest) {
 		if (isTest) {
-			_dbFileName += '-test';
-			_csvFileName += '-test';
+			_dbFileName += ' TEST';
+			_csvFileName += ' TEST';
 		}
 		_dbPathWithName = DATA_PATH + _dbFileName + DB_FILE_EXTENSION;
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
