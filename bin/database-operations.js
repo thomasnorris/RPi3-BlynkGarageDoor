@@ -18,6 +18,7 @@ var _data;
 var _headers;
 
 (function() {
+	// --Checks for Data folders and creates them if empty (i.e. if stats is false)
 	_fs.stat(DATA_PATH, (err, stats) => {
 		if (!stats) {
 			_fs.mkdirSync(DATA_PATH);
@@ -40,7 +41,7 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
+			// --Sstats.size will be 0 if there is an empty file
 			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
