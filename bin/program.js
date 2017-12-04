@@ -19,10 +19,15 @@
 				blynk = new blynkLibrary.Blynk(blynkAuth, options = {
 					connector: new blynkLibrary.TcpClient(
 						options = { addr: blynkServerIp, port: blynkServerPort })});
-				// --Small delay is necessary otherwise Blynk will error
+
+				blynk.on('error', (err) => {
+					// --Handle the error but don't do anything with it right now
+				});
+
+				// --Small delay is necessary otherwise Blynk will error right away
 				setTimeout(() => {
 					Run(blynk);
-				}, 500)
+				}, 500);
 			}
 		})
 	}
