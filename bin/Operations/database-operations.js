@@ -1,7 +1,7 @@
 
 var _fs = require('fs');
 var _csvWriter = require('csv-write-stream');
-var _dto = _localModule('date-time-operations');
+var _dto = requireLocal('date-time-operations');
 
 const DATA_PATH = __dirname + '/../Boiler Data/'; // --The /../ moves the folder up into the parent directory
 const ARCHIVE_PATH = DATA_PATH + '/Archives/';
@@ -13,7 +13,7 @@ var _dbPathWithName;
 var _csvFileName = 'Boiler Data';
 var _csvPathWithName;
 
-var _mapping = _localModule('mapping').GetMapping();
+var _mapping = requireLocal('mapping').GetMapping();
 var _data;
 var _headers;
 

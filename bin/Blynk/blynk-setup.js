@@ -1,11 +1,11 @@
 
 var _outerFunc = module.exports = {
 	Setup: function(callback) {
-		var _dto = _localModule('date-time-operations');
+		var _dto = requireLocal('date-time-operations');
 		var _fs = require('fs');
 		var _tcpPortUsed = require('tcp-port-used');
 		var _blynkLibrary = require('blynk-library');
-		var _blynkAuth = _localModule('blynk-auth').GetAuth();
+		var _blynkAuth = requireLocal('blynk-auth').GetAuth();
 
 		var _blynkErrorLogNameWithPath = __dirname + '/blynk-errors.txt';
 
