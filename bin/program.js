@@ -1,5 +1,6 @@
 
-global.requireLocal = require('local/paths').GetModule;
+// --Set this so requireLocal can be used in all files without importing
+global.requireLocal = require('local-modules').GetModule;
 
 (function() {
 	// --Setup Blynk in another file and pass it in to start the rest of the program

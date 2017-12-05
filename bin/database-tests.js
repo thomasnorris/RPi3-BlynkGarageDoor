@@ -1,5 +1,5 @@
 
-global.requireLocal = require('local/paths').GetModule;
+global.requireLocal = require('local-modules').GetModule;
 
 (function() {
 	var _dbo = requireLocal('database-operations');

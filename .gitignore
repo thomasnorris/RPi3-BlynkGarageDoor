@@ -4,4 +4,4 @@
 **/Boiler Data
 
 **/node_modules/*
-!**/node_modules/local
+!**/node_modules/*.js
