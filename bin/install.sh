@@ -21,7 +21,7 @@ echo -e "\n${GREEN}Install is complete!${NC}\nEnter your ${GREEN}Blynk Auth Toke
 read authToken
 
 blynkAuthTemplate="module.exports = { GetAuth: function() { return \"$authToken\"; } }"
-echo "$blynkAuthTemplate" > blynk-auth.js
+echo "$blynkAuthTemplate" > Blynk/blynk-auth.js
 
 sudo chown pi -R $PWD
 

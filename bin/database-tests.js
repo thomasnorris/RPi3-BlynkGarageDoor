@@ -1,11 +1,12 @@
 
 (function() {
-	var _dbo = require('./database-operations');
+	var _localModule = require('local/paths').GetModule;
+	var _dbo = _localModule('database-operations');
 	var	_schedule = require('node-schedule');
 	var	_rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
-	var	_dto = require('./date-time-operations');
+	var	_dto = _localModule('date-time-operations');
 
-	var _mapping = require('./mapping').GetMapping();
+	var _mapping = _localModule('mapping').GetMapping();
 	var _data;
 
 	_dbo.LoadDatabase((data) => {

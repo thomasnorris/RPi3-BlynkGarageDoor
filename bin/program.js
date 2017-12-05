@@ -1,11 +1,12 @@
 
 (function() {
 	// --Setup Blynk in another file and pass it in to start the rest of the program
-	require('./blynk-setup').Setup((_blynk) => {
+	var _localModule = require('local/paths').GetModule;
+	_localModule('blynk-setup').Setup((_blynk) => {
 		var _gpio = require('onoff').Gpio;
 		var _schedule = require('node-schedule');
-		var _dbo = require('./database-operations');
-		var _dto = require('./date-time-operations');
+		var _dbo = _localModule('database-operations');
+		var _dto = _localModule('date-time-operations');
 
 		const RECHARGE_TIME_MINUTES = 90;
 		const ALL_TIMERS_INTERVAL_MILLI = 60000;
