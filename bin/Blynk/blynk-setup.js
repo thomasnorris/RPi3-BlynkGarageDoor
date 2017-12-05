@@ -1,6 +1,4 @@
 
-var _localModule = require('local/paths').GetModule;
-
 var _outerFunc = module.exports = {
 	Setup: function(callback) {
 		var _dto = _localModule('date-time-operations');

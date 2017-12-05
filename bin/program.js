@@ -1,7 +1,8 @@
 
+global._localModule = require('local/paths').GetModule;
+
 (function() {
 	// --Setup Blynk in another file and pass it in to start the rest of the program
-	var _localModule = require('local/paths').GetModule;
 	_localModule('blynk-setup').Setup((_blynk) => {
 		var _gpio = require('onoff').Gpio;
 		var _schedule = require('node-schedule');

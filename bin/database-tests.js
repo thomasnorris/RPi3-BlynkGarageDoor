@@ -1,6 +1,5 @@
 
 (function() {
-	var _localModule = require('local/paths').GetModule;
 	var _dbo = _localModule('database-operations');
 	var	_schedule = require('node-schedule');
 	var	_rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });

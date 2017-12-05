@@ -1,5 +1,4 @@
 
-var _localModule = require('local/paths').GetModule;
 var _fs = require('fs');
 var _csvWriter = require('csv-write-stream');
 var _dto = _localModule('date-time-operations');
