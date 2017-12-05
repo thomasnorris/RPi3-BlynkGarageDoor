@@ -1,4 +1,6 @@
 
+global.requireLocal = require('local/paths').GetModule;
+
 (function() {
 	var _dbo = requireLocal('database-operations');
 	var	_schedule = require('node-schedule');
