@@ -119,9 +119,8 @@ var _outerFunc = module.exports = {
 	},
 
 	AddToDatabase: function(newData, needDate) {
-		console.log(newData);
 		var startIndex;
-		// --Conditionally add the date
+		// --Conditionally add the stored date or get the current date
 		if (needDate) {
 			_data[_headers[0]].push(_dto.GetCurrentDateAndTime());
 			startIndex = 1;
