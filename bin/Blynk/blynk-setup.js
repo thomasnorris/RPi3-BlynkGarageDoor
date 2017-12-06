@@ -1,12 +1,13 @@
 
 var _outerFunc = module.exports = {
 	Setup: function(callback) {
-		var _dto = require('./date-time-operations');
+		var _dto = requireLocal('date-time-operations');
 		var _fs = require('fs');
-		var _logName = 'blynk-errors.txt';
 		var _tcpPortUsed = require('tcp-port-used');
 		var _blynkLibrary = require('blynk-library');
-		var _blynkAuth = require('./blynk-auth').GetAuth();
+		var _blynkAuth = requireLocal('blynk-auth').GetAuth();
+
+		var _blynkErrorLogNameWithPath = __dirname + '/blynk-errors.txt';
 
 		// --These must match the hardware plain tcp/ip port and the ip of the server
 		var blynkServerPort = 8442; //--8442 is the default
@@ -24,12 +25,12 @@ var _outerFunc = module.exports = {
 
 					// --Catch Blynk errors and log them to a file. PM2 will take care of other issues
 					blynk.on('error', (blynkErr) => {
-						_fs.stat(_logName, (err, stats) => {
+						_fs.stat(_blynkErrorLogNameWithPath, (err, stats) => {
 							if (!stats || stats.size === 0)
-								_fs.closeSync(_fs.openSync(_logName, 'w'));
+								_fs.closeSync(_fs.openSync(_blynkErrorLogNameWithPath, 'w'));
 
-							var stream = _fs.createWriteStream(_logName, { flags: 'a' });
-							stream.write(_dto.GetCurrentDate().WithTime() + ': ' + blynkErr);
+							var stream = _fs.createWriteStream(_blynkErrorLogNameWithPath, { flags: 'a' });
+							stream.write(_dto.GetCurrentDateAndTime() + ': ' + blynkErr);
 							stream.end('\n');
 						});
 					});

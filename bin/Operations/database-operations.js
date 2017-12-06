@@ -1,33 +1,47 @@
 
 var _fs = require('fs');
 var _csvWriter = require('csv-write-stream');
-var _dto = require('./date-time-operations');
+var _dto = requireLocal('date-time-operations');
 
-const DATA_PATH = __dirname + '/data/';
-const ARCHIVE_PATH = DATA_PATH + '/archive/';
+const DATA_PATH = __dirname + '/../Boiler Data/'; // --The /../ moves the folder up into the parent directory
+const ARCHIVE_PATH = DATA_PATH + '/Archives/';
 const DB_FILE_EXTENSION = '.json';
 const CSV_FILE_EXTENSION = '.csv';
 
-var _dbFileName = 'Data';
+var _dbFileName = 'db';
 var _dbPathWithName;
-var _csvFileName = 'Data';
+var _csvFileName = 'Boiler Data';
 var _csvPathWithName;
 
-var _mapping = require('./mapping').GetMapping();
+var _mapping = requireLocal('mapping').GetMapping();
 var _data;
 var _headers;
+
+(function() {
+	// --Checks for Data folders and creates them if empty (i.e. if stats is false)
+	_fs.stat(DATA_PATH, (err, stats) => {
+		if (!stats) {
+			_fs.mkdirSync(DATA_PATH);
+			_fs.mkdirSync(ARCHIVE_PATH);
+		}
+		_fs.stat(ARCHIVE_PATH, (err, stats) => {
+			if (!stats)
+				_fs.mkdirSync(ARCHIVE_PATH);
+		});
+	});
+})();
 
 var _outerFunc = module.exports = {
 	LoadDatabase: function(callback, isTest) {
 		if (isTest) {
-			_dbFileName += '-test';
-			_csvFileName += '-test';
+			_dbFileName += ' TEST';
+			_csvFileName += ' TEST';
 		}
 		_dbPathWithName = DATA_PATH + _dbFileName + DB_FILE_EXTENSION;
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			// --Stats will be false if no file found, stats.size will be 0 if there is an empty file
+			// --Stats.size will be 0 if there is an empty file
 			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
@@ -101,7 +115,7 @@ var _outerFunc = module.exports = {
 		var startIndex;
 		// --Conditionally add the date
 		if (needDate) {
-			_data[_headers[0]].push(_dto.GetCurrentDate().WithTime());
+			_data[_headers[0]].push(_dto.GetCurrentDateAndTime());
 			startIndex = 1;
 		} else
 			startIndex = 0;
@@ -150,7 +164,7 @@ var _outerFunc = module.exports = {
 		});
 
 		function FormatArchivePath(fileName, fileExtension) {
-			var date = _dto.GetCurrentDate().WithoutTime();
+			var date = _dto.GetCurrentMonthAsStringWithYear();
 			return ARCHIVE_PATH + fileName + '-' + date + fileExtension;
 		}
 	},
