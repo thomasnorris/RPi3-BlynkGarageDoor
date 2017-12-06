@@ -90,10 +90,11 @@ var _outerFunc = module.exports = {
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
 
-		// --Only format the sections that require it.
 		var i = 0;
 		while (i < keys.length) {
+			// --These do not need their number converted into hours and minutes
 			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
+				// --Turn the well use into dollar savings on the fly
 				if (keys[i] === _mapping.WELL_SAVINGS) {
 					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 				}
@@ -118,6 +119,7 @@ var _outerFunc = module.exports = {
 	},
 
 	AddToDatabase: function(newData, needDate) {
+		console.log(newData);
 		var startIndex;
 		// --Conditionally add the date
 		if (needDate) {
@@ -126,6 +128,7 @@ var _outerFunc = module.exports = {
 		} else
 			startIndex = 0;
 
+		// --Well savings will show up as 0 in the db beacuse it is created from the well run time
 		var keys = Object.keys(newData);
 		for (var i = startIndex; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);
