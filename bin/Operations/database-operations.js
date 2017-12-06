@@ -41,7 +41,7 @@ var _outerFunc = module.exports = {
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
 		_fs.stat(_dbPathWithName, (err, stats) => {
-			// --Sstats.size will be 0 if there is an empty file
+			// --Stats.size will be 0 if there is an empty file
 			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
