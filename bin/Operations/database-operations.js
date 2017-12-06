@@ -2,6 +2,7 @@
 var _fs = require('fs');
 var _csvWriter = require('csv-write-stream');
 var _dto = requireLocal('date-time-operations');
+var _svo = requireLocal('savings-operations');
 
 const DATA_PATH = __dirname + '/../Boiler Data/'; // --The /../ moves the folder up into the parent directory
 const ARCHIVE_PATH = DATA_PATH + '/Archives/';
@@ -91,10 +92,15 @@ var _outerFunc = module.exports = {
 		// --Only format the sections that require it.
 		var i = 0;
 		while (i < keys.length) {
-			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER) {
+			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
+				if (keys[i] === _mapping.WELL_SAVINGS) {
+					var num = csvData[keys[i]];
+					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(num);
+				}
 				i++;
 				continue;
 			}
+
 			var num = csvData[keys[i]];
 			if (num !== undefined)
 				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMintues(num).PeriodDelimiter();
