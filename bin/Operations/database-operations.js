@@ -88,14 +88,14 @@ var _outerFunc = module.exports = {
 	AddToCsv: function() {
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
+		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
 
 		// --Only format the sections that require it.
 		var i = 0;
 		while (i < keys.length) {
 			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
 				if (keys[i] === _mapping.WELL_SAVINGS) {
-					var num = csvData[keys[i]];
-					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(num);
+					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 				}
 				i++;
 				continue;

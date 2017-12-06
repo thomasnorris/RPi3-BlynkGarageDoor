@@ -46,7 +46,6 @@ global.requireLocal = require('local-modules').GetModule;
 				--_data[_mapping.WELL_TIMER];
 				_data[_mapping.CFH_COUNTER] = Math.floor(Math.random() * (max - 1) + i);
 				_data[_mapping.WELL_RECHARGE_TIMER] = --_data[_mapping.CFH_COUNTER];
-				_data[_mapping.WELL_SAVINGS] = Math.floor(Math.random() * (max - 1) + i);
 				_dbo.AddToDatabase(_data, true);
 				_dbo.AddToCsv();
 				i++;
