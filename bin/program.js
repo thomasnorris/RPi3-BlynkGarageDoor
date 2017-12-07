@@ -4,7 +4,7 @@ global.requireLocal = require('local-modules').GetModule;
 
 (function() {
 	// --Setup Blynk in another file and pass it in to start the rest of the program
-	requireLocal('blynk-setup').Setup((_blynk) => {
+	requireLocal('blynk-setup')((_blynk) => {
 		var _gpio = require('onoff').Gpio;
 		var _schedule = require('node-schedule');
 		var _dbo = requireLocal('database-operations');
