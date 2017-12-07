@@ -8,8 +8,7 @@
     "csv-write-stream": "^2.0.0",
     "node-schedule": "^1.2.5",
     "npm": "^5.4.2",
-    "onoff": "^1.1.7",
-    "tcp-port-used": "^0.1.2"
+    "onoff": "^1.1.7"
   },
   "devDependencies": {},
   "scripts": {
