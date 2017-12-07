@@ -9,6 +9,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _schedule = require('node-schedule');
 		var _dbo = requireLocal('database-operations');
 		var _dto = requireLocal('date-time-operations');
+		var _svo = requireLocal('savings-operations');
 
 		const RECHARGE_TIME_MINUTES = 90;
 		const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -32,7 +33,8 @@ global.requireLocal = require('local-modules').GetModule;
 		var _boilerCfgLed = new _blynk.WidgetLED(11);
 		var _ecobeeCfhTimerDisplay = new _blynk.VirtualPin(12);
 		var _systemUptimeTimerDisplay = new _blynk.VirtualPin(13);
-		var _BoilerOfftimeTimerDisplay = new _blynk.VirtualPin(14);
+		var _boilerOfftimeTimerDisplay = new _blynk.VirtualPin(14);
+		var _wellSavingsDisplay = new _blynk.VirtualPin(15);
 
 		var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
 		var _boilerCfgInput = new _gpio(13, 'in', 'both');
@@ -76,7 +78,7 @@ global.requireLocal = require('local-modules').GetModule;
 					EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
 					StopTimer(boilerOfftimeTimer);
 					boilerOfftimeTimerRunning = false;
-					_BoilerOfftimeTimerDisplay.write(PrettyPrint(0));
+					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
 					if (!cfhTimerRunning) {
 						cfhTimerRunning = true;
 						var i = 0;
@@ -89,7 +91,7 @@ global.requireLocal = require('local-modules').GetModule;
 						boilerOfftimeTimerRunning = true;
 						var i = 0;
 						boilerOfftimeTimer = StartTimer(() => {
-							_BoilerOfftimeTimerDisplay.write(PrettyPrint(++i));
+							_boilerOfftimeTimerDisplay.write(PrettyPrint(++i));
 						}, ALL_TIMERS_INTERVAL_MILLI)
 					}
 					countLogged = false;
@@ -246,7 +248,9 @@ global.requireLocal = require('local-modules').GetModule;
 				if (!wellTimerRunning && isCallForGas) {
 					wellTimerRunning = true;
 					wellTimer = StartTimer(() => {
-						AddToDatabaseAndDisplay(_wellTimerDisplay, ++_data[_mapping.WELL_TIMER], true);
+						++_data[_mapping.WELL_TIMER];
+						AddToDatabaseAndDisplay(_wellTimerDisplay, _data[_mapping.WELL_TIMER], true);
+						_wellSavingsDisplay.write(MinutesToDollars(_data[_mapping.WELL_TIMER]));
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -329,6 +333,7 @@ global.requireLocal = require('local-modules').GetModule;
 			_columbiaTimerDisplay.write(PrettyPrint(_data[_mapping.COLUMBIA_TIMER]));
 			_wellTimerDisplay.write(PrettyPrint(_data[_mapping.WELL_TIMER]));
 			_ecobeeCfhCounterDisplay.write(_data[_mapping.CFH_COUNTER]);
+			_wellSavingsDisplay.write(MinutesToDollars(_data[_mapping.WELL_TIMER]));
 
 			// --Force the well to be fully charged on a total restart
 			if (_data[_mapping.WELL_RECHARGE_TIMER] === 0)
@@ -343,7 +348,7 @@ global.requireLocal = require('local-modules').GetModule;
 				_systemUptimeTimerDisplay.write(PrettyPrint(++i));
 			}, ALL_TIMERS_INTERVAL_MILLI);
 
-			_BoilerOfftimeTimerDisplay.write(PrettyPrint(0));
+			_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
 		}
 
 		function ResetSystemToZero() {
@@ -355,6 +360,10 @@ global.requireLocal = require('local-modules').GetModule;
 
 		function PrettyPrint(min) {
 			return _dto.ConvertMinutesToHoursAndMintues(min).PrettyPrint();
+		}
+
+		function MinutesToDollars(min) {
+			return _svo.ConvertMinutesOfUseToDollarsSaved(min);
 		}
 	});
 })();

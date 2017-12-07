@@ -2,6 +2,7 @@
 var _fs = require('fs');
 var _csvWriter = require('csv-write-stream');
 var _dto = requireLocal('date-time-operations');
+var _svo = requireLocal('savings-operations');
 
 const DATA_PATH = __dirname + '/../Boiler Data/'; // --The /../ moves the folder up into the parent directory
 const ARCHIVE_PATH = DATA_PATH + '/Archives/';
@@ -87,14 +88,20 @@ var _outerFunc = module.exports = {
 	AddToCsv: function() {
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
+		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
 
-		// --Only format the sections that require it.
 		var i = 0;
 		while (i < keys.length) {
-			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER) {
+			// --These do not need their number converted into hours and minutes
+			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
+				// --Turn the well use into dollar savings on the fly
+				if (keys[i] === _mapping.WELL_SAVINGS) {
+					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+				}
 				i++;
 				continue;
 			}
+
 			var num = csvData[keys[i]];
 			if (num !== undefined)
 				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMintues(num).PeriodDelimiter();
@@ -113,13 +120,14 @@ var _outerFunc = module.exports = {
 
 	AddToDatabase: function(newData, needDate) {
 		var startIndex;
-		// --Conditionally add the date
+		// --Conditionally add the stored date or get the current date
 		if (needDate) {
 			_data[_headers[0]].push(_dto.GetCurrentDateAndTime());
 			startIndex = 1;
 		} else
 			startIndex = 0;
 
+		// --Well savings will show up as 0 in the db beacuse it is created from the well run time
 		var keys = Object.keys(newData);
 		for (var i = startIndex; i < keys.length; i++) {
 			_data[_headers[i]].push(newData[keys[i]]);

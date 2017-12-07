@@ -9,7 +9,8 @@ var _outerFunc = module.exports = {
 			COLUMBIA_TIMER: 'Columbia Timer',
 			WELL_RECHARGE_COUNTER: 'Well Counter',
 			CFH_COUNTER : 'Call For Heat Counter',
-			WELL_RECHARGE_TIMER: 'Well Recharge Timer'
+			WELL_RECHARGE_TIMER: 'Well Recharge Timer',
+			WELL_SAVINGS: 'Cumulative Well Savings'
 		}
 	}
 }
