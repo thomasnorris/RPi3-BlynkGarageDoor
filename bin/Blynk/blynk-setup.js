@@ -11,6 +11,7 @@ var _outerFunc = module.exports = {
 		StartServer(serverDirectory, () => {
 			var blynkErrorLogNameWithPath = __dirname + '/blynk-errors.txt';
 			// --These must match the hardware plain tcp/ip port and the ip of the server
+			// --Change in serverDirectory/server.properties
 			var blynkServerPort = 8442; //--8442 is the default
 			var blynkServerIp = 'localhost';
 
@@ -50,7 +51,11 @@ var _outerFunc = module.exports = {
 				return el.match(/.+(\.jar)/);
 			}).toString();
 
-			var server = spawn('java', ['-jar', serverFile, '-dataFolder', dir]);
+			// --Must temporarily cd into the server dir before spawn and cd back
+			process.chdir(dir);
+			var server = spawn('java', ['-jar', serverFile, '-dataFolder', dir, '-serverConfig', dir + 'server.properties']);
+			process.chdir(__dirname);
+
 			server.stdout.on('data', (data) => {
 				data = data.toString();
 				// --Callback only when the server has actually started
