@@ -8,14 +8,13 @@ var _outerFunc = module.exports = {
 		var _blynkAuth = requireLocal('blynk-auth').GetAuth();
 
 		var serverDirectory = __dirname + '/Server/';
-
 		StartServer(serverDirectory, () => {
 			var blynkErrorLogNameWithPath = __dirname + '/blynk-errors.txt';
 			// --These must match the hardware plain tcp/ip port and the ip of the server
 			var blynkServerPort = 8442; //--8442 is the default
 			var blynkServerIp = 'localhost';
-			
-			blynk = new _blynkLibrary.Blynk(_blynkAuth, options = {
+
+			var blynk = new _blynkLibrary.Blynk(_blynkAuth, options = {
 				connector: new _blynkLibrary.TcpClient(
 					options = { addr: blynkServerIp, port: blynkServerPort })});
 
@@ -37,6 +36,7 @@ var _outerFunc = module.exports = {
 			}, 500);
 		});
 
+		// --Start the server by dynamically finding the correct server.jar file
 		function StartServer(dir, callback) {
 			var spawn = require('child_process').spawn;
 
@@ -50,8 +50,13 @@ var _outerFunc = module.exports = {
 				return el.match(/.+(\.jar)/);
 			}).toString();
 
-			spawn('java', ['-jar', serverFile, '-dataFolder', dir]);
-			callback();
+			var server = spawn('java', ['-jar', serverFile, '-dataFolder', dir]);
+			server.stdout.on('data', (data) => {
+				data = data.toString();
+				// --Callback only when the server has actually started
+				if (data.includes('started'))
+					callback();
+			});
 		}
 	}
 }
