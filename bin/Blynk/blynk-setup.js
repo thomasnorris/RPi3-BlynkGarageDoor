@@ -12,7 +12,7 @@ var _outerFunc = module.exports = {
 			var blynkErrorLogNameWithPath = __dirname + '/blynk-errors.txt';
 			// --These must match the hardware plain tcp/ip port and the ip of the server
 			// --Change in serverDirectory/server.properties
-			var blynkServerPort = 8442; //--8442 is the default
+			var blynkServerPort = 8442;
 			var blynkServerIp = 'localhost';
 
 			var blynk = new _blynkLibrary.Blynk(_blynkAuth, options = {
