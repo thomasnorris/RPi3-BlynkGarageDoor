@@ -7,7 +7,6 @@ module.exports = function (callback) {
 
 	var serverDirectory = __dirname + '/Server/';
 	StartServer(serverDirectory, () => {
-		var blynkErrorLogNameWithPath = __dirname + '/blynk-errors.txt';
 		// --These must match the hardware plain tcp/ip port and the ip of the server
 		// --Change in serverDirectory/server.properties
 		var blynkServerPort = 8442;
@@ -17,16 +16,9 @@ module.exports = function (callback) {
 			connector: new _blynkLibrary.TcpClient(
 				options = { addr: blynkServerIp, port: blynkServerPort })});
 
-		// --Catch Blynk errors and log them to a file. PM2 will take care of other issues
+		// --Throw any blynk errors so PM2 can restart the program and server
 		blynk.on('error', (blynkErr) => {
-			_fs.stat(blynkErrorLogNameWithPath, (err, stats) => {
-				if (!stats || stats.size === 0)
-					_fs.closeSync(_fs.openSync(blynkErrorLogNameWithPath, 'w'));
-
-				var stream = _fs.createWriteStream(blynkErrorLogNameWithPath, { flags: 'a' });
-				stream.write(_dto.GetCurrentDateAndTime() + ': ' + blynkErr);
-				stream.end('\n');
-			});
+			throw (blynkErr);
 		});
 
 		// --Small delay is necessary otherwise Blynk will error right away
