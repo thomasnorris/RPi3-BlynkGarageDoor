@@ -37,9 +37,14 @@ module.exports = function (callback) {
 			file = dir + '/' + file;
 			results.push(file);
 		});
-		var serverFile = results.filter((el) => {
+		var serverFiles = results.filter((el) => {
 			return el.match(/.+(\.jar)/);
-		}).toString();
+		});
+
+		if (serverFiles.length !== 1)
+			throw ('Make sure only one server .jar is in ' + dir);
+
+		var serverFile = serverFiles[0];
 
 		// --Must temporarily cd into the server dir before spawn and cd back
 		process.chdir(dir);
