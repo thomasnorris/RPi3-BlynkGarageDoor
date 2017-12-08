@@ -7,7 +7,7 @@ global.requireLocal = require('local-modules').GetModule;
 	var	_rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
 	var	_dto = requireLocal('date-time-operations');
 
-	var _mapping = requireLocal('mapping').GetMapping();
+	var _mapping = requireLocal('mapping')();
 	var _data;
 
 	_dbo.LoadDatabase((data) => {

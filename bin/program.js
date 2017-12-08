@@ -43,7 +43,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _wellValveRelayOutput = new _gpio(17, 'high');
 		var _boilerStartRelayOutput = new _gpio(27, 'high');
 		
-		var _mapping = require('./mapping').GetMapping();
+		var _mapping = requireLocal('mapping')();
 		var _data;
 		var _isWellCharged;
 		var _isCallForHeat = false;

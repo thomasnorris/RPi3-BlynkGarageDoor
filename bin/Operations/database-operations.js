@@ -14,7 +14,7 @@ var _dbPathWithName;
 var _csvFileName = 'Boiler Data';
 var _csvPathWithName;
 
-var _mapping = requireLocal('mapping').GetMapping();
+var _mapping = requireLocal('mapping')();
 var _data;
 var _headers;
 
