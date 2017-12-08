@@ -16,7 +16,7 @@ module.exports = function (callback) {
 			connector: new _blynkLibrary.TcpClient(
 				options = { addr: blynkServerIp, port: blynkServerPort })});
 
-		// --Throw any blynk errors so PM2 can restart the program and server
+		// --Throw any blynk errors so PM2 can restart everything
 		blynk.on('error', (blynkErr) => {
 			throw (blynkErr);
 		});
