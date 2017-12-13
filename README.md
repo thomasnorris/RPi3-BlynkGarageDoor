@@ -11,7 +11,7 @@
 ## Installation
 - Clone this repo with SSH or HTTPS, then change directory into the `bin` folder
 - Run this command
-  - `chmod +x install.sh && ./install.sh`
+  - `sudo chmod +x install.sh && ./install.sh`
 - Start the program with PM2
   - `pm2 start program.js --name NameToGiveProcess`
 
