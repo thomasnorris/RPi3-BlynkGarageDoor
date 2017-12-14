@@ -89,8 +89,7 @@ global.requireLocal = require('local-modules').GetModule;
 					boilerOfftimeTimerRunning = false;
 					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
 				} 
-				else 
-				{
+				else {
 					if (!boilerOfftimeTimerRunning) {
 						boilerOfftimeTimerRunning = true;
 						var i = 0;
