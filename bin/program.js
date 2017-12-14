@@ -147,6 +147,9 @@ global.requireLocal = require('local-modules').GetModule;
 			var columbiaTimerRunning = false;
 			var isCallForGas = false;
 
+			ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell, _manualWellButton, StopBothColumbiaAndWell);
+			ManualValveControl(_manualWellButton, StartColumbiaStopWell, _manualColumbiaButton, StopBothColumbiaAndWell);
+
 			(function MonitorManualValveOverrideButton() {
 				_manualOverrideButton.on('write', (value) => {
 					if (!_isCallForHeat) {
@@ -191,35 +194,20 @@ global.requireLocal = require('local-modules').GetModule;
 				}, INPUT_CHECK_INTERVAL_MILLI);
 			})();
 
-			(function ManualColumbiaValveControl() {
-				_manualColumbiaButton.on('write', (value) => {
+			function ManualValveControl(button, startFunction, otherButton, stopFunction) {
+				button.on('write', (value) => {
 					if (_manualOverrideEnable) {
 						if (parseInt(value) === 1) {
-							StartColumbiaStopWell();
-							_manualWellButton.write(0);
+							startFunction()
+							otherButton.write(0);
 						}
-						else {
-							StopBothColumbiaAndWell();
-						}
-					} else
-						_manualColumbiaButton.write(0);
-				});
-			})();
-
-			(function ManualWellValveControl() {
-				_manualWellButton.on('write', (value) => {
-					if (_manualOverrideEnable) {
-						if (parseInt(value) === 1) {
-							StartWellStopColumbia();
-							_manualColumbiaButton.write(0);
-						}
-						else {
-							StopBothColumbiaAndWell();
-						}
-					} else
-						_manualWellButton.write(0);
-				});
-			})();
+						else 
+							stopFunction();
+					}
+					else
+						button.write(0);
+				})
+			}
 
 			function StopBothColumbiaAndWell() {
 				columbiaTimerRunning = false;
