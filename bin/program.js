@@ -149,13 +149,7 @@ global.requireLocal = require('local-modules').GetModule;
 			var columbiaManualValve = false;
 			var isCallForGas = false;
 
-
-			MonitorManualValveOverrideButton();
-			MonitorBoilerCallForGas();
-			ManualColumbiaValveControl();
-			ManualWellValveControl();
-
-			function MonitorManualValveOverrideButton() {
+			(function MonitorManualValveOverrideButton() {
 				_manualOverrideButton.on('write', (value) => {
 					if (!_isCallForHeat) {
 						if (parseInt(value) === 1)
@@ -170,9 +164,9 @@ global.requireLocal = require('local-modules').GetModule;
 					else
 						_manualOverrideButton.write(0);
 				});
-			}
+			})();
 
-			function MonitorBoilerCallForGas() {
+			(function MonitorBoilerCallForGas() {
 				var timerRunning = false;
 				StartTimer(() => {
 					if (!_manualOverrideEnable) {
@@ -197,9 +191,9 @@ global.requireLocal = require('local-modules').GetModule;
 						}
 					}
 				}, INPUT_CHECK_INTERVAL_MILLI);
-			}
+			})();
 
-			function ManualColumbiaValveControl() {
+			(function ManualColumbiaValveControl() {
 				_manualColumbiaButton.on('write', (value) => {
 					if (_manualOverrideEnable) {
 						if (parseInt(value) === 1) {
@@ -214,9 +208,9 @@ global.requireLocal = require('local-modules').GetModule;
 					} else
 						_manualColumbiaButton.write(0);
 				});
-			}
+			})();
 
-			function ManualWellValveControl() {
+			(function ManualWellValveControl() {
 				_manualWellButton.on('write', (value) => {
 					if (_manualOverrideEnable) {
 						if (parseInt(value) === 1) {
@@ -231,7 +225,7 @@ global.requireLocal = require('local-modules').GetModule;
 					} else
 						_manualWellButton.write(0);
 				});
-			}
+			})();
 
 			function StopBothColumbiaAndWell() {
 				columbiaManualValve = false;
@@ -302,7 +296,6 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function StartSchedules() {
-
 			CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 			// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
