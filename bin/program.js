@@ -43,7 +43,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _wellValveRelayOutput = new _gpio(17, 'high');
 		var _boilerStartRelayOutput = new _gpio(27, 'high');
 		
-		var _mapping = require('./mapping').GetMapping();
+		var _mapping = requireLocal('mapping').GetMapping();
 		var _data;
 		var _isWellCharged;
 		var _isCallForHeat = false;
@@ -74,11 +74,7 @@ global.requireLocal = require('local-modules').GetModule;
 						AddToDatabaseAndDisplay(_ecobeeCfhCounterDisplay, ++_data[_mapping.CFH_COUNTER]);
 						countLogged = true;
 					}
-					_isCallForHeat = true;
-					EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-					StopTimer(boilerOfftimeTimer);
-					boilerOfftimeTimerRunning = false;
-					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
+
 					if (!cfhTimerRunning) {
 						cfhTimerRunning = true;
 						var i = 0;
@@ -86,7 +82,15 @@ global.requireLocal = require('local-modules').GetModule;
 							_ecobeeCfhTimerDisplay.write(PrettyPrint(++i));
 						}, ALL_TIMERS_INTERVAL_MILLI);
 					}
-				} else {
+
+					_isCallForHeat = true;
+					EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+					StopTimer(boilerOfftimeTimer);
+					boilerOfftimeTimerRunning = false;
+					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
+				} 
+				else 
+				{
 					if (!boilerOfftimeTimerRunning) {
 						boilerOfftimeTimerRunning = true;
 						var i = 0;
@@ -101,15 +105,14 @@ global.requireLocal = require('local-modules').GetModule;
 					cfhTimerRunning = false;
 					_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
 				} 
-
 			}, INPUT_CHECK_INTERVAL_MILLI);
 		}
 
 		function MonitorWellPressureSwitch() {
 			_isWellCharged = (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
-			
 			var wellRechargeTimer;
 			var wellRechargeTimerRunning = false;
+
 			StartTimer(() => {
 				if (_wellPressureSwitchInput.readSync() === 1 && !wellRechargeTimerRunning && _data[_mapping.WELL_RECHARGE_TIMER] !== RECHARGE_TIME_MINUTES) {
 					_isWellCharged = false;
@@ -128,6 +131,7 @@ global.requireLocal = require('local-modules').GetModule;
 				else if (_wellPressureSwitchInput.readSync() === 0) {
 					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
 						_data[_mapping.WELL_RECHARGE_TIMER] = 0;
+
 					StopTimer(wellRechargeTimer);
 					wellRechargeTimerRunning = false;
 					_isWellCharged = false;
@@ -183,7 +187,8 @@ global.requireLocal = require('local-modules').GetModule;
 								else 
 									StartColumbiaStopWell();
 							}, 100);
-						} else if (_boilerCfgInput.readSync() === 0) {
+						} 
+						else if (_boilerCfgInput.readSync() === 0) {
 							timerRunning = false;
 							StopBothColumbiaAndWell();
 							StopTimer(boilerTimer);
@@ -312,7 +317,8 @@ global.requireLocal = require('local-modules').GetModule;
 					if (!_isCallForHeat && _isWellCharged) {
 						functionToStart(functionCallback);
 						job.reschedule(originalSchedule);
-					} else {
+					} 
+					else {
 						var arr = newSchedule.split(' ');
 						arr[0] = parseInt(arr[0]) + 1;
 						newSchedule = arr.join(' ');
