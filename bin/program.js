@@ -143,10 +143,8 @@ global.requireLocal = require('local-modules').GetModule;
 			var boilerTimer;
 			var wellTimer;
 			var wellTimerRunning = false;
-			var wellManualValve = false;
 			var columbiaTimer;
 			var columbiaTimerRunning = false;
-			var columbiaManualValve = false;
 			var isCallForGas = false;
 
 			(function MonitorManualValveOverrideButton() {
@@ -197,12 +195,10 @@ global.requireLocal = require('local-modules').GetModule;
 				_manualColumbiaButton.on('write', (value) => {
 					if (_manualOverrideEnable) {
 						if (parseInt(value) === 1) {
-							columbiaManualValve = true;
 							StartColumbiaStopWell();
 							_manualWellButton.write(0);
 						}
 						else {
-							columbiaManualValve = false;
 							StopBothColumbiaAndWell();
 						}
 					} else
@@ -214,12 +210,10 @@ global.requireLocal = require('local-modules').GetModule;
 				_manualWellButton.on('write', (value) => {
 					if (_manualOverrideEnable) {
 						if (parseInt(value) === 1) {
-							wellManualValve = true;
 							StartWellStopColumbia();
 							_manualColumbiaButton.write(0);
 						}
 						else {
-							wellManualValve = false;
 							StopBothColumbiaAndWell();
 						}
 					} else
@@ -228,8 +222,6 @@ global.requireLocal = require('local-modules').GetModule;
 			})();
 
 			function StopBothColumbiaAndWell() {
-				columbiaManualValve = false;
-				wellManualValve = false;
 				columbiaTimerRunning = false;
 				wellTimerRunning = false;
 				StopTimer(wellTimer);
@@ -239,7 +231,6 @@ global.requireLocal = require('local-modules').GetModule;
 			}
 
 			function StartWellStopColumbia() {
-				columbiaManualValve = false;
 				columbiaTimerRunning = false;
 				StopTimer(columbiaTimer);
 				EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
@@ -255,7 +246,6 @@ global.requireLocal = require('local-modules').GetModule;
 			}
 
 			function StartColumbiaStopWell() {
-				wellManualValve = false;
 				wellTimerRunning = false;
 				StopTimer(wellTimer);
 				EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
