@@ -97,6 +97,7 @@ global.requireLocal = require('local-modules').GetModule;
 							_boilerOfftimeTimerDisplay.write(PrettyPrint(++i));
 						}, ALL_TIMERS_INTERVAL_MILLI)
 					}
+
 					countLogged = false;
 					_isCallForHeat = false;
 					DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
@@ -173,6 +174,7 @@ global.requireLocal = require('local-modules').GetModule;
 						if (_boilerCfgInput.readSync() === 1 && !timerRunning) {
 							timerRunning = true;
 							StopTimer(boilerTimer);
+							
 							boilerTimer = StartTimer(() => {
 								_boilerCfgLed.turnOn();
 								isCallForGas = true;
