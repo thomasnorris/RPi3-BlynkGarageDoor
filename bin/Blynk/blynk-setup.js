@@ -29,6 +29,11 @@ var _outerFunc = module.exports = {
 						var stream = fs.createWriteStream(blynkErrorLogNameWithPath, { flags: 'a' });
 						stream.write(dto.GetCurrentDateAndTime() + ': ' + blynkErr);
 						stream.end('\n');
+
+						// --Throw the Blynk error so PM2 will restart
+						stream.on('finish', () => {
+							throw blynkErr;
+						});
 					});
 				});
 
