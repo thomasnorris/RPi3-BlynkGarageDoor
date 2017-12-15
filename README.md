@@ -1,6 +1,6 @@
 ## Notes
 - This project is a RPi3 replacement for the basement PLC gas-switching system with added features. 
-- Uses [Blynk](http://www.blynk.cc/) for monitoring and control and JavaScript (via [Node.Js](https://nodejs.org/en/)) as the language of choice.
+- Uses [Blynk](http://www.blynk.cc/) for monitoring and control and JavaScript (via [Node.js](https://nodejs.org/en/)) as the language of choice.
 - The Pi's timezone must be manually set for task scheduling to work as expected. Follow [these](https://victorhurdugaci.com/raspberry-pi-sync-date-and-time) instructions for getting it set up.
 - This project is configured to run on a Blynk server hosted on the same Pi. Instructions for this are [here](https://github.com/blynkkk/blynk-server#blynk-server). All of the default ports are used. This must be set up first.
 	- The admin portal is at `https://IP_OF_PI:9443/admin`
@@ -16,6 +16,7 @@
   - `pm2 start program.js --name NameToGiveProcess`
 
 ## JavaScript Library References
+- [PM2](https://github.com/Unitech/pm2) - Awesome Node.js process manager
 - [blynk-library-js](https://github.com/vshymanskyy/blynk-library-js) - Wrapper for Blynk
 - [onoff](https://github.com/fivdi/onoff) - Wrapper for GPIO control
 - [node-schedule](https://github.com/node-schedule/node-schedule) - CRON-like event scheduling
