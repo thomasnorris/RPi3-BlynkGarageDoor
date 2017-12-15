@@ -63,7 +63,7 @@ var _outerFunc = module.exports = {
 				});
 			}
 
-			_data = _outerFunc.ReadDatabase();
+			_data = JSON.parse(_fs.readFileSync(_dbPathWithName));
 			_headers = Object.keys(_data);
 
 			var data = _outerFunc.GetRecentlyLoggedData();
@@ -136,15 +136,10 @@ var _outerFunc = module.exports = {
 		}
 
 		_outerFunc.WriteToDatabase();
-		_data = _outerFunc.ReadDatabase();
 	},
 
 	WriteToDatabase: function() {
 		_fs.writeFileSync(_dbPathWithName, JSON.stringify(_data, null, '\t'));
-	},
-
-	ReadDatabase: function() {
-		return JSON.parse(_fs.readFileSync(_dbPathWithName));
 	},
 	
 	RefreshDatabase: function() {
