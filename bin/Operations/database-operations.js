@@ -127,11 +127,14 @@ var _outerFunc = module.exports = {
 		} else
 			startIndex = 0;
 
-		// --Well savings will show up as 0 in the db beacuse it is created from the well run time
+		var recentData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(newData);
 		for (var i = startIndex; i < keys.length; i++) {
-			_data[_headers[i]].push(newData[keys[i]]);
+			// --Only push new data if it is different than previous data
+			if (recentData[keys[i]] !== newData[keys[i]])
+				_data[_headers[i]].push(newData[keys[i]]);
 		}
+
 		_outerFunc.WriteToDatabase();
 		_data = _outerFunc.ReadDatabase();
 	},
