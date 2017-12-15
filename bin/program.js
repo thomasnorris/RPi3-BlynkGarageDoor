@@ -148,7 +148,7 @@ global.requireLocal = require('local-modules').GetModule;
 			var isCallForGas = false;
 
 			ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell, _manualWellButton, StopBothColumbiaAndWell);
-			ManualValveControl(_manualWellButton, StartColumbiaStopWell, _manualColumbiaButton, StopBothColumbiaAndWell);
+			ManualValveControl(_manualWellButton, StartWellStopColumbia, _manualColumbiaButton, StopBothColumbiaAndWell);
 
 			(function MonitorManualValveOverrideButton() {
 				_manualOverrideButton.on('write', (value) => {
