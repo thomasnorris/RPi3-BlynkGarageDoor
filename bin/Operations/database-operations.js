@@ -38,6 +38,7 @@ var _outerFunc = module.exports = {
 			_dbFileName += ' TEST';
 			_csvFileName += ' TEST';
 		}
+
 		_dbPathWithName = DATA_PATH + _dbFileName + DB_FILE_EXTENSION;
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
@@ -50,14 +51,17 @@ var _outerFunc = module.exports = {
 				_fs.stat(_csvPathWithName, (err, stats) => {
 					// --Only create a new csv if that is not found either
 					if (!stats) {
-						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
 						var tempHeaders = [];
 						var csvData = [];
+
+						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
+
 						Object.keys(_data).forEach((key) => {
 							tempHeaders.push(key);
 							// --Pushing an empty character because something has to be written on creation
 							csvData.push('');
 						});
+
 						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
 					}
 				});
@@ -79,9 +83,11 @@ var _outerFunc = module.exports = {
 
 	GetRecentlyLoggedData: function() {
 		var recentData = {};
+
 		Object.keys(_data).forEach((key) => {
 			recentData[key] = _data[key][_data[key].length - 1];
 		});
+		
 		return recentData;
 	},
 
@@ -113,6 +119,7 @@ var _outerFunc = module.exports = {
 
 	WriteToCsv: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
 		var writer = _csvWriter(csvWriterArgs);
+		
 		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
 		writer.write(csvData);
 		writer.end();
@@ -129,6 +136,7 @@ var _outerFunc = module.exports = {
 
 		var recentData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(newData);
+
 		for (var i = startIndex; i < keys.length; i++) {
 			// --Only push new data if it is different than previous data
 			if (recentData[keys[i]] !== newData[keys[i]])
@@ -144,15 +152,16 @@ var _outerFunc = module.exports = {
 	
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		_fs.unlinkSync(_dbPathWithName);
 
+		_fs.unlinkSync(_dbPathWithName);
 		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
 
 	CreateNewDatabase: function() {
-		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_data = {};
+
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		Object.keys(_mapping).forEach((key) => {
 			_data[_mapping[key]] = [];
 		});
@@ -160,8 +169,8 @@ var _outerFunc = module.exports = {
 	
 	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		_fs.unlinkSync(_dbPathWithName);
 
+		_fs.unlinkSync(_dbPathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(() => {
