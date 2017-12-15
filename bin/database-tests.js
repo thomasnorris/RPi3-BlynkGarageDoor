@@ -3,9 +3,7 @@ global.requireLocal = require('local-modules').GetModule;
 
 (function() {
 	var _dbo = requireLocal('database-operations');
-	var	_schedule = require('node-schedule');
-	var	_rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
-	var	_dto = requireLocal('date-time-operations');
+	var _rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
 
 	var _mapping = requireLocal('mapping').GetMapping();
 	var _data;
