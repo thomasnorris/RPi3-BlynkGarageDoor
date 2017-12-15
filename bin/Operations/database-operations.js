@@ -1,8 +1,6 @@
 
 var _fs = require('fs');
-var _csvWriter = require('csv-write-stream');
 var _dto = requireLocal('date-time-operations');
-var _svo = requireLocal('savings-operations');
 
 const DATA_PATH = __dirname + '/../Boiler Data/'; // --The /../ moves the folder up into the parent directory
 const ARCHIVE_PATH = DATA_PATH + '/Archives/';
@@ -92,6 +90,7 @@ var _outerFunc = module.exports = {
 	},
 
 	AddToCsv: function() {
+		var svo = requireLocal('savings-operations');
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
@@ -102,7 +101,7 @@ var _outerFunc = module.exports = {
 			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
 				// --Turn the well use into dollar savings on the fly
 				if (keys[i] === _mapping.WELL_SAVINGS) {
-					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+					csvData[keys[i]] = svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 				}
 				i++;
 				continue;
@@ -118,8 +117,8 @@ var _outerFunc = module.exports = {
 	},
 
 	WriteToCsv: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
-		var writer = _csvWriter(csvWriterArgs);
-		
+		var writer = require('csv-write-stream')(csvWriterArgs);
+
 		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
 		writer.write(csvData);
 		writer.end();
