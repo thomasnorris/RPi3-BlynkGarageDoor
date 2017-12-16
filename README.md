@@ -9,6 +9,9 @@
 	- An auth token will be generated when connecting to the server from the app
 
 ## Installation
+- Follow the timezone setting instructions above
+- Edit `/etc/rc.local` to include this to make sure that the time zone is applied on every startup (set for Eastern time)
+    - `cp /usr/share/zoneinfo/US/Eastern /etc/localtime && /etc/init.d/ntp restart`
 - Clone this repo with SSH or HTTPS, then change directory into the `bin` folder
 - Run this command
   - `sudo chmod +x install.sh && ./install.sh`
