@@ -1,8 +1,6 @@
 
 var _fs = require('fs');
-var _csvWriter = require('csv-write-stream');
 var _dto = requireLocal('date-time-operations');
-var _svo = requireLocal('savings-operations');
 
 const DATA_PATH = __dirname + '/../Boiler Data/'; // --The /../ moves the folder up into the parent directory
 const ARCHIVE_PATH = DATA_PATH + '/Archives/';
@@ -38,6 +36,7 @@ var _outerFunc = module.exports = {
 			_dbFileName += ' TEST';
 			_csvFileName += ' TEST';
 		}
+
 		_dbPathWithName = DATA_PATH + _dbFileName + DB_FILE_EXTENSION;
 		_csvPathWithName = DATA_PATH + _csvFileName + CSV_FILE_EXTENSION;
 
@@ -50,20 +49,23 @@ var _outerFunc = module.exports = {
 				_fs.stat(_csvPathWithName, (err, stats) => {
 					// --Only create a new csv if that is not found either
 					if (!stats) {
-						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
 						var tempHeaders = [];
 						var csvData = [];
+
+						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
+
 						Object.keys(_data).forEach((key) => {
 							tempHeaders.push(key);
 							// --Pushing an empty character because something has to be written on creation
 							csvData.push('');
 						});
+
 						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
 					}
 				});
 			}
 
-			_data = _outerFunc.ReadDatabase();
+			_data = JSON.parse(_fs.readFileSync(_dbPathWithName));
 			_headers = Object.keys(_data);
 
 			var data = _outerFunc.GetRecentlyLoggedData();
@@ -79,13 +81,16 @@ var _outerFunc = module.exports = {
 
 	GetRecentlyLoggedData: function() {
 		var recentData = {};
+
 		Object.keys(_data).forEach((key) => {
 			recentData[key] = _data[key][_data[key].length - 1];
 		});
+		
 		return recentData;
 	},
 
 	AddToCsv: function() {
+		var svo = requireLocal('savings-operations');
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
@@ -96,7 +101,7 @@ var _outerFunc = module.exports = {
 			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
 				// --Turn the well use into dollar savings on the fly
 				if (keys[i] === _mapping.WELL_SAVINGS) {
-					csvData[keys[i]] = _svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+					csvData[keys[i]] = svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 				}
 				i++;
 				continue;
@@ -112,7 +117,8 @@ var _outerFunc = module.exports = {
 	},
 
 	WriteToCsv: function(csvData, filePath, csvWriterArgs, writeStreamArgs) {
-		var writer = _csvWriter(csvWriterArgs);
+		var writer = require('csv-write-stream')(csvWriterArgs);
+
 		writer.pipe(_fs.createWriteStream(filePath, writeStreamArgs));
 		writer.write(csvData);
 		writer.end();
@@ -127,34 +133,34 @@ var _outerFunc = module.exports = {
 		} else
 			startIndex = 0;
 
-		// --Well savings will show up as 0 in the db beacuse it is created from the well run time
+		var recentData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(newData);
+
 		for (var i = startIndex; i < keys.length; i++) {
-			_data[_headers[i]].push(newData[keys[i]]);
+			// --Only push new data if it is different than previous data
+			if (recentData[keys[i]] !== newData[keys[i]])
+				_data[_headers[i]].push(newData[keys[i]]);
 		}
+
 		_outerFunc.WriteToDatabase();
-		_data = _outerFunc.ReadDatabase();
 	},
 
 	WriteToDatabase: function() {
 		_fs.writeFileSync(_dbPathWithName, JSON.stringify(_data, null, '\t'));
 	},
-
-	ReadDatabase: function() {
-		return JSON.parse(_fs.readFileSync(_dbPathWithName));
-	},
 	
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		_fs.unlinkSync(_dbPathWithName);
 
+		_fs.unlinkSync(_dbPathWithName);
 		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
 
 	CreateNewDatabase: function() {
-		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		_data = {};
+
+		_outerFunc.CreateNewEmptyFile(_dbPathWithName);
 		Object.keys(_mapping).forEach((key) => {
 			_data[_mapping[key]] = [];
 		});
@@ -162,8 +168,8 @@ var _outerFunc = module.exports = {
 	
 	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
-		_fs.unlinkSync(_dbPathWithName);
 
+		_fs.unlinkSync(_dbPathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(() => {

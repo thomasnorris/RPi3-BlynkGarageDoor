@@ -43,7 +43,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _wellValveRelayOutput = new _gpio(17, 'high');
 		var _boilerStartRelayOutput = new _gpio(27, 'high');
 		
-		var _mapping = require('./mapping').GetMapping();
+		var _mapping = requireLocal('mapping').GetMapping();
 		var _data;
 		var _isWellCharged;
 		var _isCallForHeat = false;
@@ -74,11 +74,7 @@ global.requireLocal = require('local-modules').GetModule;
 						AddToDatabaseAndDisplay(_ecobeeCfhCounterDisplay, ++_data[_mapping.CFH_COUNTER]);
 						countLogged = true;
 					}
-					_isCallForHeat = true;
-					EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
-					StopTimer(boilerOfftimeTimer);
-					boilerOfftimeTimerRunning = false;
-					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
+
 					if (!cfhTimerRunning) {
 						cfhTimerRunning = true;
 						var i = 0;
@@ -86,7 +82,14 @@ global.requireLocal = require('local-modules').GetModule;
 							_ecobeeCfhTimerDisplay.write(PrettyPrint(++i));
 						}, ALL_TIMERS_INTERVAL_MILLI);
 					}
-				} else {
+
+					_isCallForHeat = true;
+					EnableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
+					StopTimer(boilerOfftimeTimer);
+					boilerOfftimeTimerRunning = false;
+					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
+				} 
+				else {
 					if (!boilerOfftimeTimerRunning) {
 						boilerOfftimeTimerRunning = true;
 						var i = 0;
@@ -94,6 +97,7 @@ global.requireLocal = require('local-modules').GetModule;
 							_boilerOfftimeTimerDisplay.write(PrettyPrint(++i));
 						}, ALL_TIMERS_INTERVAL_MILLI)
 					}
+
 					countLogged = false;
 					_isCallForHeat = false;
 					DisableRelayAndLed(_boilerStartRelayOutput, _ecobeeCfhLed);
@@ -101,15 +105,14 @@ global.requireLocal = require('local-modules').GetModule;
 					cfhTimerRunning = false;
 					_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
 				} 
-
 			}, INPUT_CHECK_INTERVAL_MILLI);
 		}
 
 		function MonitorWellPressureSwitch() {
 			_isWellCharged = (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
-			
 			var wellRechargeTimer;
 			var wellRechargeTimerRunning = false;
+
 			StartTimer(() => {
 				if (_wellPressureSwitchInput.readSync() === 1 && !wellRechargeTimerRunning && _data[_mapping.WELL_RECHARGE_TIMER] !== RECHARGE_TIME_MINUTES) {
 					_isWellCharged = false;
@@ -128,6 +131,7 @@ global.requireLocal = require('local-modules').GetModule;
 				else if (_wellPressureSwitchInput.readSync() === 0) {
 					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
 						_data[_mapping.WELL_RECHARGE_TIMER] = 0;
+
 					StopTimer(wellRechargeTimer);
 					wellRechargeTimerRunning = false;
 					_isWellCharged = false;
@@ -139,19 +143,14 @@ global.requireLocal = require('local-modules').GetModule;
 			var boilerTimer;
 			var wellTimer;
 			var wellTimerRunning = false;
-			var wellManualValve = false;
 			var columbiaTimer;
 			var columbiaTimerRunning = false;
-			var columbiaManualValve = false;
 			var isCallForGas = false;
 
+			ManualValveControl(_manualColumbiaButton, StartColumbiaStopWell, _manualWellButton, StopBothColumbiaAndWell);
+			ManualValveControl(_manualWellButton, StartWellStopColumbia, _manualColumbiaButton, StopBothColumbiaAndWell);
 
-			MonitorManualValveOverrideButton();
-			MonitorBoilerCallForGas();
-			ManualColumbiaValveControl();
-			ManualWellValveControl();
-
-			function MonitorManualValveOverrideButton() {
+			(function MonitorManualValveOverrideButton() {
 				_manualOverrideButton.on('write', (value) => {
 					if (!_isCallForHeat) {
 						if (parseInt(value) === 1)
@@ -166,15 +165,16 @@ global.requireLocal = require('local-modules').GetModule;
 					else
 						_manualOverrideButton.write(0);
 				});
-			}
+			})();
 
-			function MonitorBoilerCallForGas() {
+			(function MonitorBoilerCallForGas() {
 				var timerRunning = false;
 				StartTimer(() => {
 					if (!_manualOverrideEnable) {
 						if (_boilerCfgInput.readSync() === 1 && !timerRunning) {
 							timerRunning = true;
 							StopTimer(boilerTimer);
+							
 							boilerTimer = StartTimer(() => {
 								_boilerCfgLed.turnOn();
 								isCallForGas = true;
@@ -183,7 +183,8 @@ global.requireLocal = require('local-modules').GetModule;
 								else 
 									StartColumbiaStopWell();
 							}, 100);
-						} else if (_boilerCfgInput.readSync() === 0) {
+						} 
+						else if (_boilerCfgInput.readSync() === 0) {
 							timerRunning = false;
 							StopBothColumbiaAndWell();
 							StopTimer(boilerTimer);
@@ -192,45 +193,24 @@ global.requireLocal = require('local-modules').GetModule;
 						}
 					}
 				}, INPUT_CHECK_INTERVAL_MILLI);
-			}
+			})();
 
-			function ManualColumbiaValveControl() {
-				_manualColumbiaButton.on('write', (value) => {
+			function ManualValveControl(button, startFunction, otherButton, stopFunction) {
+				button.on('write', (value) => {
 					if (_manualOverrideEnable) {
 						if (parseInt(value) === 1) {
-							columbiaManualValve = true;
-							StartColumbiaStopWell();
-							_manualWellButton.write(0);
+							startFunction()
+							otherButton.write(0);
 						}
-						else {
-							columbiaManualValve = false;
-							StopBothColumbiaAndWell();
-						}
-					} else
-						_manualColumbiaButton.write(0);
-				});
-			}
-
-			function ManualWellValveControl() {
-				_manualWellButton.on('write', (value) => {
-					if (_manualOverrideEnable) {
-						if (parseInt(value) === 1) {
-							wellManualValve = true;
-							StartWellStopColumbia();
-							_manualColumbiaButton.write(0);
-						}
-						else {
-							wellManualValve = false;
-							StopBothColumbiaAndWell();
-						}
-					} else
-						_manualWellButton.write(0);
-				});
+						else 
+							stopFunction();
+					}
+					else
+						button.write(0);
+				})
 			}
 
 			function StopBothColumbiaAndWell() {
-				columbiaManualValve = false;
-				wellManualValve = false;
 				columbiaTimerRunning = false;
 				wellTimerRunning = false;
 				StopTimer(wellTimer);
@@ -240,7 +220,6 @@ global.requireLocal = require('local-modules').GetModule;
 			}
 
 			function StartWellStopColumbia() {
-				columbiaManualValve = false;
 				columbiaTimerRunning = false;
 				StopTimer(columbiaTimer);
 				EnableRelayAndLed(_wellValveRelayOutput, _usingWellLed);
@@ -256,7 +235,6 @@ global.requireLocal = require('local-modules').GetModule;
 			}
 
 			function StartColumbiaStopWell() {
-				wellManualValve = false;
 				wellTimerRunning = false;
 				StopTimer(wellTimer);
 				EnableRelayAndLed(_columbiaValveRelayOutput, _usingColumbiaLed);
@@ -297,7 +275,6 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function StartSchedules() {
-
 			CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 			// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
@@ -312,7 +289,8 @@ global.requireLocal = require('local-modules').GetModule;
 					if (!_isCallForHeat && _isWellCharged) {
 						functionToStart(functionCallback);
 						job.reschedule(originalSchedule);
-					} else {
+					} 
+					else {
 						var arr = newSchedule.split(' ');
 						arr[0] = parseInt(arr[0]) + 1;
 						newSchedule = arr.join(' ');
