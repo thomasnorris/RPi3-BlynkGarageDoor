@@ -9,7 +9,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _schedule = require('node-schedule');
 		var _dbo = requireLocal('database-operations');
 		var _dto = requireLocal('date-time-operations');
-		var _svo = requireLocal('savings-operations');
+		var _msco = requireLocal('misc-operations');
 
 		const RECHARGE_TIME_MINUTES = 90;
 		const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -341,7 +341,7 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function MinutesToDollars(min) {
-			return _svo.ConvertMinutesOfUseToDollarsSaved(min);
+			return _msco.ConvertMinutesOfUseToDollarsSaved(min);
 		}
 	});
 })();

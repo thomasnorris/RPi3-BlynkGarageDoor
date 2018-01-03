@@ -90,7 +90,7 @@ var _outerFunc = module.exports = {
 	},
 
 	AddToCsv: function() {
-		var svo = requireLocal('savings-operations');
+		var msco = requireLocal('misc-operations');
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
@@ -101,7 +101,7 @@ var _outerFunc = module.exports = {
 			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
 				// --Turn the well use into dollar savings on the fly
 				if (keys[i] === _mapping.WELL_SAVINGS) {
-					csvData[keys[i]] = svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+					csvData[keys[i]] = msco.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 				}
 				i++;
 				continue;
