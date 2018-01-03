@@ -92,7 +92,6 @@ var _outerFunc = module.exports = {
 	AddToCsv: function() {
 		var msco = requireLocal('misc-operations');
 		var csvData = _outerFunc.GetRecentlyLoggedData();
-		console.log(csvData)
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
 		var unconvertedColumbiaTimerMinuts = csvData[_mapping.COLUMBIA_TIMER];
