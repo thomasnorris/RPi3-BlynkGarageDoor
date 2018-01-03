@@ -160,7 +160,7 @@ var _outerFunc = module.exports = {
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 
-		_fs.unlinkSync(_dbPathWithName);
+		_outerFunc.DeleteFile(_dbPathWithName);
 		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
@@ -177,7 +177,7 @@ var _outerFunc = module.exports = {
 	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 
-		_fs.unlinkSync(_dbPathWithName);
+		_outerFunc.DeleteFile(_dbPathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(() => {
@@ -193,7 +193,7 @@ var _outerFunc = module.exports = {
 
 	ResetSystemToZero: function(callback) {
 		_outerFunc.CreateArchives(() => {
-			_fs.unlinkSync(_dbPathWithName);
+			_outerFunc.DeleteFile(_dbPathWithName);
 			_outerFunc.LoadDatabase((recentData) => {
 				callback(recentData);
 			});
@@ -203,5 +203,9 @@ var _outerFunc = module.exports = {
 	CreateNewEmptyFile: function(filePath) {
 		// --Creates a new file and then closes it so it can be accessed right away
 		_fs.closeSync(_fs.openSync(filePath, 'w'));
+	},
+
+	DeleteFile: function(filePath) {
+		_fs.unlinkSync(filePath);
 	}
 }
