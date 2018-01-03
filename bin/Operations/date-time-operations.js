@@ -38,7 +38,15 @@ var _outerFunc = module.exports = {
 		];
 		var date = new Date();
 		var year = date.getFullYear();
-		var monthString = monthNames[date.getMonth()];
+		var month = date.getMonth() - 1;
+
+		// --If the current month is January, change the previous month to December and go back a year
+		if (month === -1) {
+			year--;
+			month = 11;
+		}
+
+		var monthString = monthNames[month];
 
 		return monthString + ' ' + year;
 	},
