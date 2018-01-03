@@ -90,7 +90,7 @@ var _outerFunc = module.exports = {
 	},
 
 	AddToCsv: function() {
-		var msco = requireLocal('misc-operations');
+		var guo = requireLocal('gas-use-operations');
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
@@ -110,13 +110,13 @@ var _outerFunc = module.exports = {
 			}
 
 			if (key === _mapping.WELL_SAVINGS)
-				csvData[key] = msco.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+				csvData[key] = guo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 
 			if (key === _mapping.PERCENT_WELL_USED)
-				csvData[key] = msco.GetPercentGasUsed(unconvertedWellTimerMinutes, unconvertedColumbiaTimerMinuts);
+				csvData[key] = guo.GetPercentGasUsed(unconvertedWellTimerMinutes, unconvertedColumbiaTimerMinuts);
 
 			if (key === _mapping.PERCENT_COLUMBIA_USED)
-				csvData[key] = msco.GetPercentGasUsed(unconvertedColumbiaTimerMinuts, unconvertedWellTimerMinutes);
+				csvData[key] = guo.GetPercentGasUsed(unconvertedColumbiaTimerMinuts, unconvertedWellTimerMinutes);
 
 			i++;
 		}

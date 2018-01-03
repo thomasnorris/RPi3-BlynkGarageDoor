@@ -7,7 +7,7 @@ global.requireLocal = require('local-modules').GetModule;
 	requireLocal('blynk-setup').Setup((_blynk) => {
 		var _gpio = require('onoff').Gpio;
 		var _dbo = requireLocal('database-operations');
-		var _msco = requireLocal('misc-operations');
+		var _guo = requireLocal('gas-use-operations');
 
 		const RECHARGE_TIME_MINUTES = 90;
 		const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -346,11 +346,11 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function GetWellSavings() {
-			return _msco.ConvertMinutesOfUseToDollarsSaved(_data[_mapping.WELL_TIMER]);
+			return _guo.ConvertMinutesOfUseToDollarsSaved(_data[_mapping.WELL_TIMER]);
 		}
 
 		function GetPercentWellGasUsed() {
-			return _msco.GetPercentGasUsed(_data[_mapping.WELL_TIMER], _data[_mapping.COLUMBIA_TIMER]);
+			return _guo.GetPercentGasUsed(_data[_mapping.WELL_TIMER], _data[_mapping.COLUMBIA_TIMER]);
 		}
 	});
 })();
