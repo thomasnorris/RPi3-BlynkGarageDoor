@@ -5,5 +5,13 @@ var _outerFunc = module.exports = {
 		var hours = min / 60;
 		var savings = (hours * 0.75 * .98).toFixed(2);
 		return '$' + savings;
+	},
+
+	GetPercentWellUsed: function(wellMinutes, columbiaMinutes) {
+		wellMinutes = parseInt(wellMinutes);
+		columbiaMinutes = parseInt(columbiaMinutes);
+
+		var totalMinutes = wellMinutes + columbiaMinutes;
+		return (wellMinutes / totalMinutes).toFixed(2) + '%';
 	}
 }

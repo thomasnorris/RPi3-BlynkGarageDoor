@@ -94,22 +94,26 @@ var _outerFunc = module.exports = {
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
+		var unconvertedColumbiaTimerMinuts = csvData[_mapping.COLUMBIA_TIMER];
 
 		var i = 0;
 		while (i < keys.length) {
+			var key = keys[i];
 			// --These do not need their number converted into hours and minutes
-			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
+			if (key === _mapping.DATE || key === _mapping.WELL_RECHARGE_COUNTER || key === _mapping.CFH_COUNTER || key === _mapping.WELL_SAVINGS || key === _mapping.PERCENT_WELL_USED) {
 				// --Turn the well use into dollar savings on the fly
-				if (keys[i] === _mapping.WELL_SAVINGS) {
-					csvData[keys[i]] = msco.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
-				}
+				if (key === _mapping.WELL_SAVINGS)
+					csvData[key] = msco.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+
+				if (key === _mapping.PERCENT_WELL_USED)
+					csvData[key] = msco.GetPercentWellUsed(unconvertedWellTimerMinutes, unconvertedColumbiaTimerMinuts);
 				i++;
 				continue;
 			}
 
-			var num = csvData[keys[i]];
+			var num = csvData[key];
 			if (num !== undefined)
-				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMintues(num).PeriodDelimiter();
+				csvData[key] = _dto.ConvertMinutesToHoursAndMintues(num).PeriodDelimiter();
 			i++;
 		}
 

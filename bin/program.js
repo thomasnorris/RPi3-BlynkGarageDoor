@@ -32,6 +32,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _systemUptimeTimerDisplay = new _blynk.VirtualPin(13);
 		var _boilerOfftimeTimerDisplay = new _blynk.VirtualPin(14);
 		var _wellSavingsDisplay = new _blynk.VirtualPin(15);
+		var _wellPercentUsedDisplay = new _blynk.VirtualPin(16);
 
 		var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
 		var _boilerCfgInput = new _gpio(13, 'in', 'both');
@@ -320,7 +321,7 @@ global.requireLocal = require('local-modules').GetModule;
 			_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
 
 			var i = 0;
-			_systemUptimeTimerDisplay.write(PrettyPrint(i));
+			_systemUptimeTimerDisplay.write(PrettyPrint(0));
 			StartTimer(() => {
 				_systemUptimeTimerDisplay.write(PrettyPrint(++i));
 			}, ALL_TIMERS_INTERVAL_MILLI);
