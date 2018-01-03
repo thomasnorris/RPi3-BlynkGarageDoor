@@ -11,7 +11,8 @@ var _outerFunc = module.exports = {
 			CFH_COUNTER : 'Call For Heat Counter',
 			WELL_RECHARGE_TIMER: 'Well Recharge Timer',
 			WELL_SAVINGS: 'Cumulative Well Savings',
-			PERCENT_WELL_USED: 'Well Gas Percent Used'
+			PERCENT_WELL_USED: 'Well Gas Percent Used',
+			PERCENT_COLUMBIA_USED: 'Columbia Gas Percent Used'
 		}
 	}
 }
