@@ -45,25 +45,25 @@ var _outerFunc = module.exports = {
 			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
-
-				_fs.stat(_csvPathWithName, (err, stats) => {
-					// --Only create a new csv if that is not found either
-					if (!stats) {
-						var tempHeaders = [];
-						var csvData = [];
-
-						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
-
-						Object.keys(_data).forEach((key) => {
-							tempHeaders.push(key);
-							// --Pushing an empty character because something has to be written on creation
-							csvData.push('');
-						});
-
-						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
-					}
-				});
 			}
+			
+			_fs.stat(_csvPathWithName, (err, stats) => {
+				// --Only create a new csv if that is not found either
+				if (!stats) {
+					var tempHeaders = [];
+					var csvData = [];
+
+					_outerFunc.CreateNewEmptyFile(_csvPathWithName);
+
+					Object.keys(_data).forEach((key) => {
+						tempHeaders.push(key);
+						// --Pushing an empty character because something has to be written on creation
+						csvData.push('');
+					});
+
+					_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
+				}
+			});
 
 			_data = JSON.parse(_fs.readFileSync(_dbPathWithName));
 			_headers = Object.keys(_data);
