@@ -7,6 +7,7 @@ global.requireLocal = require('local-modules').GetModule;
 	requireLocal('blynk-setup').Setup((_blynk) => {
 		var _gpio = require('onoff').Gpio;
 		var _dbo = requireLocal('database-operations');
+		var _msco = requireLocal('misc-operations');
 
 		const RECHARGE_TIME_MINUTES = 90;
 		const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -227,7 +228,8 @@ global.requireLocal = require('local-modules').GetModule;
 					wellTimer = StartTimer(() => {
 						++_data[_mapping.WELL_TIMER];
 						AddToDatabaseAndDisplay(_wellTimerDisplay, _data[_mapping.WELL_TIMER], true);
-						_wellSavingsDisplay.write(MinutesToDollars(_data[_mapping.WELL_TIMER]));
+						_wellSavingsDisplay.write(GetWellSavings());
+						_wellPercentUsedDisplay.write(GetPercentWellGasUsed());
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -241,6 +243,7 @@ global.requireLocal = require('local-modules').GetModule;
 					columbiaTimerRunning = true;
 					columbiaTimer = StartTimer(() => {
 						AddToDatabaseAndDisplay(_columbiaTimerDisplay, ++_data[_mapping.COLUMBIA_TIMER], true);
+						_wellPercentUsedDisplay.write(GetPercentWellGasUsed());
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -311,7 +314,8 @@ global.requireLocal = require('local-modules').GetModule;
 			_columbiaTimerDisplay.write(PrettyPrint(_data[_mapping.COLUMBIA_TIMER]));
 			_wellTimerDisplay.write(PrettyPrint(_data[_mapping.WELL_TIMER]));
 			_ecobeeCfhCounterDisplay.write(_data[_mapping.CFH_COUNTER]);
-			_wellSavingsDisplay.write(MinutesToDollars(_data[_mapping.WELL_TIMER]));
+			_wellSavingsDisplay.write(GetWellSavings());
+			_wellPercentUsedDisplay.write(GetPercentGasUsed());
 
 			// --Force the well to be fully charged on a total restart
 			if (_data[_mapping.WELL_RECHARGE_TIMER] === 0)
@@ -341,9 +345,12 @@ global.requireLocal = require('local-modules').GetModule;
 			return dto.ConvertMinutesToHoursAndMintues(min).PrettyPrint();
 		}
 
-		function MinutesToDollars(min) {
-			var msco = requireLocal('misc-operations');
-			return msco.ConvertMinutesOfUseToDollarsSaved(min);
+		function GetWellSavings() {
+			return _msco.ConvertMinutesOfUseToDollarsSaved(_data[_mapping.WELL_TIMER]);
+		}
+
+		function GetPercentWellGasUsed() {
+			return _msco.GetPercentGasUsed(_data[_mapping.WELL_TIMER], _data[_mapping.COLUMBIA_TIMER]);
 		}
 	});
 })();

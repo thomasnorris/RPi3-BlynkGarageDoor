@@ -113,7 +113,7 @@ var _outerFunc = module.exports = {
 				csvData[key] = msco.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
 
 			if (key === _mapping.PERCENT_WELL_USED)
-				csvData[key] = msco.GetPercentWellUsed(unconvertedWellTimerMinutes, unconvertedColumbiaTimerMinuts);
+				csvData[key] = msco.GetPercentGasUsed(unconvertedWellTimerMinutes, unconvertedColumbiaTimerMinuts);
 			
 			i++;
 		}

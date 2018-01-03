@@ -7,11 +7,11 @@ var _outerFunc = module.exports = {
 		return '$' + savings;
 	},
 
-	GetPercentWellUsed: function(wellMinutes, columbiaMinutes) {
-		wellMinutes = parseInt(wellMinutes);
-		columbiaMinutes = parseInt(columbiaMinutes);
+	GetPercentGasUsed: function(gasTimeToGetPercentOf, otherGasTime) {
+		gasTimeToGetPercentOf = parseInt(gasTimeToGetPercentOf);
+		otherGasTime = parseInt(otherGasTime);
 
-		var totalMinutes = wellMinutes + columbiaMinutes;
-		return (wellMinutes / totalMinutes).toFixed(2) + '%';
+		var totalMinutes = gasTimeToGetPercentOf + otherGasTime;
+		return (gasTimeToGetPercentOf / totalMinutes).toFixed(2) + '%';
 	}
 }
