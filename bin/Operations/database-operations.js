@@ -45,25 +45,25 @@ var _outerFunc = module.exports = {
 			if (!stats || stats.size === 0) {
 				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
-
-				_fs.stat(_csvPathWithName, (err, stats) => {
-					// --Only create a new csv if that is not found either
-					if (!stats) {
-						var tempHeaders = [];
-						var csvData = [];
-
-						_outerFunc.CreateNewEmptyFile(_csvPathWithName);
-
-						Object.keys(_data).forEach((key) => {
-							tempHeaders.push(key);
-							// --Pushing an empty character because something has to be written on creation
-							csvData.push('');
-						});
-
-						_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
-					}
-				});
 			}
+			
+			_fs.stat(_csvPathWithName, (err, stats) => {
+				// --Only create a new csv if that is not found either
+				if (!stats) {
+					var tempHeaders = [];
+					var csvData = [];
+
+					_outerFunc.CreateNewEmptyFile(_csvPathWithName);
+
+					Object.keys(_data).forEach((key) => {
+						tempHeaders.push(key);
+						// --Pushing an empty character because something has to be written on creation
+						csvData.push('');
+					});
+
+					_outerFunc.WriteToCsv(csvData, _csvPathWithName, { headers: tempHeaders });
+				}
+			});
 
 			_data = JSON.parse(_fs.readFileSync(_dbPathWithName));
 			_headers = Object.keys(_data);
@@ -90,26 +90,34 @@ var _outerFunc = module.exports = {
 	},
 
 	AddToCsv: function() {
-		var svo = requireLocal('savings-operations');
+		var guo = requireLocal('gas-use-operations');
 		var csvData = _outerFunc.GetRecentlyLoggedData();
 		var keys = Object.keys(csvData);
 		var unconvertedWellTimerMinutes = csvData[_mapping.WELL_TIMER];
+		var unconvertedColumbiaTimerMinuts = csvData[_mapping.COLUMBIA_TIMER];
 
 		var i = 0;
 		while (i < keys.length) {
-			// --These do not need their number converted into hours and minutes
-			if (keys[i] === _mapping.DATE || keys[i] === _mapping.WELL_RECHARGE_COUNTER || keys[i] === _mapping.CFH_COUNTER || keys[i] === _mapping.WELL_SAVINGS) {
-				// --Turn the well use into dollar savings on the fly
-				if (keys[i] === _mapping.WELL_SAVINGS) {
-					csvData[keys[i]] = svo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
-				}
+			var key = keys[i];
+
+			// --Only these need to be converted
+			if (key === _mapping.WELL_TIMER || key === _mapping.COLUMBIA_TIMER || key === _mapping.WELL_RECHARGE_TIMER) {
+				var num = csvData[key];
+				if (num !== undefined)
+					csvData[key] = _dto.ConvertMinutesToHoursAndMintues(num).PeriodDelimiter();
 				i++;
 				continue;
 			}
 
-			var num = csvData[keys[i]];
-			if (num !== undefined)
-				csvData[keys[i]] = _dto.ConvertMinutesToHoursAndMintues(num).PeriodDelimiter();
+			if (key === _mapping.WELL_SAVINGS)
+				csvData[key] = guo.ConvertMinutesOfUseToDollarsSaved(unconvertedWellTimerMinutes);
+
+			if (key === _mapping.PERCENT_WELL_USED)
+				csvData[key] = guo.GetPercentGasUsed(unconvertedWellTimerMinutes, unconvertedColumbiaTimerMinuts);
+
+			if (key === _mapping.PERCENT_COLUMBIA_USED)
+				csvData[key] = guo.GetPercentGasUsed(unconvertedColumbiaTimerMinuts, unconvertedWellTimerMinutes);
+
 			i++;
 		}
 
@@ -152,7 +160,7 @@ var _outerFunc = module.exports = {
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 
-		_fs.unlinkSync(_dbPathWithName);
+		_outerFunc.DeleteFile(_dbPathWithName);
 		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
 	},
@@ -169,7 +177,7 @@ var _outerFunc = module.exports = {
 	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 
-		_fs.unlinkSync(_dbPathWithName);
+		_outerFunc.DeleteFile(_dbPathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
 
 		_outerFunc.LoadDatabase(() => {
@@ -185,7 +193,7 @@ var _outerFunc = module.exports = {
 
 	ResetSystemToZero: function(callback) {
 		_outerFunc.CreateArchives(() => {
-			_fs.unlinkSync(_dbPathWithName);
+			_outerFunc.DeleteFile(_dbPathWithName);
 			_outerFunc.LoadDatabase((recentData) => {
 				callback(recentData);
 			});
@@ -195,5 +203,9 @@ var _outerFunc = module.exports = {
 	CreateNewEmptyFile: function(filePath) {
 		// --Creates a new file and then closes it so it can be accessed right away
 		_fs.closeSync(_fs.openSync(filePath, 'w'));
+	},
+
+	DeleteFile: function(filePath) {
+		_fs.unlinkSync(filePath);
 	}
 }

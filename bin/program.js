@@ -6,10 +6,8 @@ global.requireLocal = require('local-modules').GetModule;
 	// --Setup Blynk in another file and pass it in to start the rest of the program
 	requireLocal('blynk-setup').Setup((_blynk) => {
 		var _gpio = require('onoff').Gpio;
-		var _schedule = require('node-schedule');
 		var _dbo = requireLocal('database-operations');
-		var _dto = requireLocal('date-time-operations');
-		var _svo = requireLocal('savings-operations');
+		var _guo = requireLocal('gas-use-operations');
 
 		const RECHARGE_TIME_MINUTES = 90;
 		const ALL_TIMERS_INTERVAL_MILLI = 60000;
@@ -35,6 +33,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _systemUptimeTimerDisplay = new _blynk.VirtualPin(13);
 		var _boilerOfftimeTimerDisplay = new _blynk.VirtualPin(14);
 		var _wellSavingsDisplay = new _blynk.VirtualPin(15);
+		var _wellPercentUsedDisplay = new _blynk.VirtualPin(16);
 
 		var _wellPressureSwitchInput = new _gpio(26, 'in', 'both');
 		var _boilerCfgInput = new _gpio(13, 'in', 'both');
@@ -229,7 +228,8 @@ global.requireLocal = require('local-modules').GetModule;
 					wellTimer = StartTimer(() => {
 						++_data[_mapping.WELL_TIMER];
 						AddToDatabaseAndDisplay(_wellTimerDisplay, _data[_mapping.WELL_TIMER], true);
-						_wellSavingsDisplay.write(MinutesToDollars(_data[_mapping.WELL_TIMER]));
+						_wellSavingsDisplay.write(GetWellSavings());
+						_wellPercentUsedDisplay.write(GetPercentGasUsed());
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -243,6 +243,7 @@ global.requireLocal = require('local-modules').GetModule;
 					columbiaTimerRunning = true;
 					columbiaTimer = StartTimer(() => {
 						AddToDatabaseAndDisplay(_columbiaTimerDisplay, ++_data[_mapping.COLUMBIA_TIMER], true);
+						_wellPercentUsedDisplay.write(GetPercentGasUsed());
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -275,6 +276,8 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function StartSchedules() {
+			var nodeSchedule = require('node-schedule');
+
 			CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
 			// --File safe schedueles will add a minute to the schedule and try again if the system could be reading or writing to a file
@@ -284,7 +287,7 @@ global.requireLocal = require('local-modules').GetModule;
 
 			function CreateFileSafeSchedule(originalSchedule, functionToStart, functionCallback) {
 				var newSchedule = originalSchedule;
-				var job = _schedule.scheduleJob(originalSchedule, () => {
+				var job = nodeSchedule.scheduleJob(originalSchedule, () => {
 					job.cancel();
 					if (!_isCallForHeat && _isWellCharged) {
 						functionToStart(functionCallback);
@@ -300,7 +303,7 @@ global.requireLocal = require('local-modules').GetModule;
 			}
 
 			function CreateNormalSchedule(schedule, functionToStart) {
-				_schedule.scheduleJob(schedule, () => {
+				nodeSchedule.scheduleJob(schedule, () => {
 					functionToStart();
 				});
 			}
@@ -311,7 +314,8 @@ global.requireLocal = require('local-modules').GetModule;
 			_columbiaTimerDisplay.write(PrettyPrint(_data[_mapping.COLUMBIA_TIMER]));
 			_wellTimerDisplay.write(PrettyPrint(_data[_mapping.WELL_TIMER]));
 			_ecobeeCfhCounterDisplay.write(_data[_mapping.CFH_COUNTER]);
-			_wellSavingsDisplay.write(MinutesToDollars(_data[_mapping.WELL_TIMER]));
+			_wellSavingsDisplay.write(GetWellSavings());
+			_wellPercentUsedDisplay.write(GetPercentGasUsed());
 
 			// --Force the well to be fully charged on a total restart
 			if (_data[_mapping.WELL_RECHARGE_TIMER] === 0)
@@ -321,7 +325,7 @@ global.requireLocal = require('local-modules').GetModule;
 			_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
 
 			var i = 0;
-			_systemUptimeTimerDisplay.write(PrettyPrint(i));
+			_systemUptimeTimerDisplay.write(PrettyPrint(0));
 			StartTimer(() => {
 				_systemUptimeTimerDisplay.write(PrettyPrint(++i));
 			}, ALL_TIMERS_INTERVAL_MILLI);
@@ -337,11 +341,16 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function PrettyPrint(min) {
-			return _dto.ConvertMinutesToHoursAndMintues(min).PrettyPrint();
+			var dto = requireLocal('date-time-operations');
+			return dto.ConvertMinutesToHoursAndMintues(min).PrettyPrint();
 		}
 
-		function MinutesToDollars(min) {
-			return _svo.ConvertMinutesOfUseToDollarsSaved(min);
+		function GetWellSavings() {
+			return _guo.ConvertMinutesOfUseToDollarsSaved(_data[_mapping.WELL_TIMER]);
+		}
+
+		function GetPercentGasUsed() {
+			return _guo.GetPercentGasUsed(_data[_mapping.WELL_TIMER], _data[_mapping.COLUMBIA_TIMER]);
 		}
 	});
 })();
