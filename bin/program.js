@@ -229,7 +229,7 @@ global.requireLocal = require('local-modules').GetModule;
 						++_data[_mapping.WELL_TIMER];
 						AddToDatabaseAndDisplay(_wellTimerDisplay, _data[_mapping.WELL_TIMER], true);
 						_wellSavingsDisplay.write(GetWellSavings());
-						_wellPercentUsedDisplay.write(GetPercentWellGasUsed());
+						_wellPercentUsedDisplay.write(GetPercentGasUsed());
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -243,7 +243,7 @@ global.requireLocal = require('local-modules').GetModule;
 					columbiaTimerRunning = true;
 					columbiaTimer = StartTimer(() => {
 						AddToDatabaseAndDisplay(_columbiaTimerDisplay, ++_data[_mapping.COLUMBIA_TIMER], true);
-						_wellPercentUsedDisplay.write(GetPercentWellGasUsed());
+						_wellPercentUsedDisplay.write(GetPercentGasUsed());
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 			}
@@ -276,7 +276,7 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function StartSchedules() {
-			var schedule = require('node-schedule');
+			var nodeSchedule = require('node-schedule');
 
 			CreateNormalSchedule(CRON_CSV_WRITE_SCHEDULE, _dbo.AddToCsv);
 
@@ -287,7 +287,7 @@ global.requireLocal = require('local-modules').GetModule;
 
 			function CreateFileSafeSchedule(originalSchedule, functionToStart, functionCallback) {
 				var newSchedule = originalSchedule;
-				var job = schedule.scheduleJob(originalSchedule, () => {
+				var job = nodeSchedule.scheduleJob(originalSchedule, () => {
 					job.cancel();
 					if (!_isCallForHeat && _isWellCharged) {
 						functionToStart(functionCallback);
@@ -303,7 +303,7 @@ global.requireLocal = require('local-modules').GetModule;
 			}
 
 			function CreateNormalSchedule(schedule, functionToStart) {
-				schedule.scheduleJob(schedule, () => {
+				nodeSchedule.scheduleJob(schedule, () => {
 					functionToStart();
 				});
 			}
@@ -349,7 +349,7 @@ global.requireLocal = require('local-modules').GetModule;
 			return _guo.ConvertMinutesOfUseToDollarsSaved(_data[_mapping.WELL_TIMER]);
 		}
 
-		function GetPercentWellGasUsed() {
+		function GetPercentGasUsed() {
 			return _guo.GetPercentGasUsed(_data[_mapping.WELL_TIMER], _data[_mapping.COLUMBIA_TIMER]);
 		}
 	});
