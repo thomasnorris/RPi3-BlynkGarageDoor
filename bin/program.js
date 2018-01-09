@@ -297,7 +297,7 @@ global.requireLocal = require('local-modules').GetModule;
 						var arr = newSchedule.split(' ');
 						arr[0] = parseInt(arr[0]) + 1;
 
-						// --59 is the max value for a minute, increase the hour by 1 if need be
+						// Increase the hour by 1 if need be
 						if (arr[0] == 60) {
 							arr[0] = 0;
 							arr[1] = parseInt(arr[1]) + 1;
