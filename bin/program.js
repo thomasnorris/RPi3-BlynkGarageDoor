@@ -303,7 +303,9 @@ global.requireLocal = require('local-modules').GetModule;
 							arr[1] = parseInt(arr[1]) + 1;
 						}
 
-						newSchedule = arr.join(' ');
+						// --Reset to the original schedule if 24 hours have passed
+						arr[1] == 24 ? newSchedule = originalSchedule : newSchedule = arr.join(' ');
+
 						job.reschedule(newSchedule);
 					}
 				});
