@@ -296,7 +296,16 @@ global.requireLocal = require('local-modules').GetModule;
 					else {
 						var arr = newSchedule.split(' ');
 						arr[0] = parseInt(arr[0]) + 1;
-						newSchedule = arr.join(' ');
+
+						// Increase the hour by 1 if need be
+						if (arr[0] == 60) {
+							arr[0] = 0;
+							arr[1] = parseInt(arr[1]) + 1;
+						}
+
+						// --Reset to the original schedule if 24 hours have passed
+						arr[1] == 24 ? newSchedule = originalSchedule : newSchedule = arr.join(' ');
+
 						job.reschedule(newSchedule);
 					}
 				});
