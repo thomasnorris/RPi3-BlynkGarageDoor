@@ -15,10 +15,16 @@
  	- Edit `/etc/rc.local` to include this to make sure that the time zone is applied on every startup (set for Eastern time)
 		- `cp /usr/share/zoneinfo/US/Eastern /etc/localtime && /etc/init.d/ntp restart`
 - Clone this repo and change directory into the `bin` folder
-- Run this command
+- Run this command to install
 	- `sudo chmod +x install.sh && ./install.sh`
-- Start the program with PM2
-	- `pm2 start program.js --name NameToGiveProcess`
+
+## Start it up
+- Edit `/etc/rc.local` and include these lines (or a variation thereof if the locations have changed) (these can also be run on their own)
+- Order is important; the server must be started first
+	- Start the server
+		- `sudo java -jar "/home/pi/Blynk Server/server-0.28.5-java8.jar" -dataFolder "/home/pi/Blynk Server/" &`
+	- Start the program
+		- `sudo pm2 start /home/pi/GitSandbox/BoilerControl/bin/program.js --name BoilerControl`
 
 ## JavaScript References
 - [PM2](https://github.com/Unitech/pm2) - Node.js process manager
