@@ -3,7 +3,7 @@
 - Uses [Blynk](http://www.blynk.cc/) for monitoring and control and JavaScript (via [Node.js](https://nodejs.org/en/)) as the language of choice.
 - This project is configured to run on a Blynk server hosted on the same Pi. Instructions for this are [here](https://github.com/blynkkk/blynk-server#blynk-server). All of the default ports are used. This must be set up first.
 	- The admin portal is at `https://IP_OF_PI:9443/admin`
-	- The port to use in the Blynk app is 8442
+	- The port to use in the Blynk app is 9443
 	- An admin user will be created the first time the server is run
 	- An auth token will be generated when connecting to the server from the app
 
