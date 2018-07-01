@@ -12,6 +12,8 @@ var _outerFunc = module.exports = {
 		otherGasTime = parseInt(otherGasTime);
 
 		var totalMinutes = gasTimeToGetPercentOf + otherGasTime;
+		if (totalMinutes === 0)
+			return 0 + '%';
 		return ((gasTimeToGetPercentOf / totalMinutes) * 100).toFixed(2) + '%';
 	}
 }
