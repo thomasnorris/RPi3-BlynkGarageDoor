@@ -1,10 +1,16 @@
 
+// Global logger setup
+var _path = require('path');
+global._logger = require(_path.resolve(__dirname, '../', 'Node-Logger', 'app.js'));
+_logger.Init();
+
 // --Set this so requireLocal can be used in all files without importing
 global.requireLocal = require('local-modules').GetModule;
 
 (function() {
 	// --Setup Blynk in another file and pass it in to start the rest of the program
 	requireLocal('blynk-setup').Setup((_blynk) => {
+		_logger.Info.Async('Blynk configured and connected');
 		var _gpio = require('onoff').Gpio;
 		var _dbo = requireLocal('database-operations');
 		var _guo = requireLocal('gas-use-operations');
@@ -17,10 +23,10 @@ global.requireLocal = require('local-modules').GetModule;
 		const CRON_DB_REFRESH_SCHEDULE = '0 0 2-31 */1 *'; // --Every 2-31 days of the month at 12:00 am
 		const CRON_RESET_SCHEDULE = '0 0 1 7 *'; // --The 1st of July every year at 12:00 am
 
-		var _manualOverrideButton = new _blynk.VirtualPin(0); 
-		var _manualColumbiaButton = new _blynk.VirtualPin(1); 
+		var _manualOverrideButton = new _blynk.VirtualPin(0);
+		var _manualColumbiaButton = new _blynk.VirtualPin(1);
 		var _manualWellButton = new _blynk.VirtualPin(2);
-		var _wellRechargeTimerDisplay = new _blynk.VirtualPin(3); 
+		var _wellRechargeTimerDisplay = new _blynk.VirtualPin(3);
 		var _wellRechargeCounterDisplay = new _blynk.VirtualPin(4);
 		var _columbiaTimerDisplay = new _blynk.VirtualPin(5);
 		var _usingColumbiaLed = new _blynk.WidgetLED(6);
@@ -41,7 +47,7 @@ global.requireLocal = require('local-modules').GetModule;
 		var _columbiaValveRelayOutput = new _gpio(4, 'high');
 		var _wellValveRelayOutput = new _gpio(17, 'high');
 		var _boilerStartRelayOutput = new _gpio(27, 'high');
-		
+
 		var _mapping = requireLocal('mapping').GetMapping();
 		var _data;
 		var _isWellCharged;
@@ -50,6 +56,7 @@ global.requireLocal = require('local-modules').GetModule;
 
 		// --Start main function
 		_dbo.LoadDatabase((data) => {
+			_logger.Info.Async('Database loaded');
 			_data = data;
 
 			// --All functions split up for readability
@@ -62,6 +69,8 @@ global.requireLocal = require('local-modules').GetModule;
 		// --End main function
 
 		function MonitorEcobeeCallForHeat() {
+			_logger.Info.Async('Monitoring started', 'Call for heat');
+
 			var countLogged = false;
 			var cfhTimerRunning = false;
 			var cfhTimer;
@@ -87,7 +96,7 @@ global.requireLocal = require('local-modules').GetModule;
 					StopTimer(boilerOfftimeTimer);
 					boilerOfftimeTimerRunning = false;
 					_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
-				} 
+				}
 				else {
 					if (!boilerOfftimeTimerRunning) {
 						boilerOfftimeTimerRunning = true;
@@ -103,11 +112,13 @@ global.requireLocal = require('local-modules').GetModule;
 					StopTimer(cfhTimer);
 					cfhTimerRunning = false;
 					_ecobeeCfhTimerDisplay.write(PrettyPrint(0));
-				} 
+				}
 			}, INPUT_CHECK_INTERVAL_MILLI);
 		}
 
 		function MonitorWellPressureSwitch() {
+			_logger.Info.Async('Monitoring started', 'Well pressures switch');
+
 			_isWellCharged = (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
 			var wellRechargeTimer;
 			var wellRechargeTimerRunning = false;
@@ -124,9 +135,9 @@ global.requireLocal = require('local-modules').GetModule;
 							_isWellCharged = true;
 							StopTimer(wellRechargeTimer);
 							AddToDatabaseAndDisplay(_wellRechargeCounterDisplay, ++_data[_mapping.WELL_RECHARGE_COUNTER]);
-						} 
+						}
 					}, ALL_TIMERS_INTERVAL_MILLI);
-				} 
+				}
 				else if (_wellPressureSwitchInput.readSync() === 0) {
 					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
 						_data[_mapping.WELL_RECHARGE_TIMER] = 0;
@@ -139,6 +150,8 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function MonitorValvesAndCallForGas() {
+			_logger.Info.Async('Monitoring started', 'Valves and call for gas');
+
 			var boilerTimer;
 			var wellTimer;
 			var wellTimerRunning = false;
@@ -173,16 +186,16 @@ global.requireLocal = require('local-modules').GetModule;
 						if (_boilerCfgInput.readSync() === 1 && !timerRunning) {
 							timerRunning = true;
 							StopTimer(boilerTimer);
-							
+
 							boilerTimer = StartTimer(() => {
 								_boilerCfgLed.turnOn();
 								isCallForGas = true;
-								if (_isWellCharged) 
+								if (_isWellCharged)
 									StartWellStopColumbia();
-								else 
+								else
 									StartColumbiaStopWell();
 							}, 100);
-						} 
+						}
 						else if (_boilerCfgInput.readSync() === 0) {
 							timerRunning = false;
 							StopBothColumbiaAndWell();
@@ -201,7 +214,7 @@ global.requireLocal = require('local-modules').GetModule;
 							startFunction()
 							otherButton.write(0);
 						}
-						else 
+						else
 							stopFunction();
 					}
 					else
@@ -285,6 +298,8 @@ global.requireLocal = require('local-modules').GetModule;
 			CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives, () => {}); // --Empty callback is necessary
 			CreateFileSafeSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
+			_logger.Info.Async('Schedules created');
+
 			function CreateFileSafeSchedule(originalSchedule, functionToStart, functionCallback) {
 				var newSchedule = originalSchedule;
 				var job = nodeSchedule.scheduleJob(originalSchedule, () => {
@@ -292,7 +307,7 @@ global.requireLocal = require('local-modules').GetModule;
 					if (!_isCallForHeat && _isWellCharged) {
 						functionToStart(functionCallback);
 						job.reschedule(originalSchedule);
-					} 
+					}
 					else {
 						var arr = newSchedule.split(' ');
 						arr[0] = parseInt(arr[0]) + 1;
@@ -340,6 +355,7 @@ global.requireLocal = require('local-modules').GetModule;
 			}, ALL_TIMERS_INTERVAL_MILLI);
 
 			_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
+			_logger.Info.Async('Values initialized');
 		}
 
 		function ResetSystemToZero() {

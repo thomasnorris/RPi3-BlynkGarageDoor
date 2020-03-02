@@ -46,7 +46,7 @@ var _outerFunc = module.exports = {
 				_outerFunc.CreateNewDatabase();
 				_outerFunc.WriteToDatabase();
 			}
-			
+
 			_fs.stat(_csvPathWithName, (err, stats) => {
 				// --Only create a new csv if that is not found either
 				if (!stats) {
@@ -85,7 +85,7 @@ var _outerFunc = module.exports = {
 		Object.keys(_data).forEach((key) => {
 			recentData[key] = _data[key][_data[key].length - 1];
 		});
-		
+
 		return recentData;
 	},
 
@@ -156,13 +156,15 @@ var _outerFunc = module.exports = {
 	WriteToDatabase: function() {
 		_fs.writeFileSync(_dbPathWithName, JSON.stringify(_data, null, '\t'));
 	},
-	
+
 	RefreshDatabase: function() {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 
 		_outerFunc.DeleteFile(_dbPathWithName);
 		_outerFunc.CreateNewDatabase();
 		_outerFunc.AddToDatabase(dataToKeep);
+
+		_logger.Info.Async('Database refreshed');
 	},
 
 	CreateNewDatabase: function() {
@@ -172,13 +174,17 @@ var _outerFunc = module.exports = {
 		Object.keys(_mapping).forEach((key) => {
 			_data[_mapping[key]] = [];
 		});
+
+		_logger.Info.Async('New database created');
 	},
-	
+
 	CreateArchives: function(callback) {
 		var dataToKeep = _outerFunc.GetRecentlyLoggedData();
 
 		_outerFunc.DeleteFile(_dbPathWithName);
 		_fs.renameSync(_csvPathWithName, FormatArchivePath(_csvFileName, CSV_FILE_EXTENSION));
+
+		_logger.Info.Async('Archives created');
 
 		_outerFunc.LoadDatabase(() => {
 			_outerFunc.AddToDatabase(dataToKeep);
@@ -198,6 +204,8 @@ var _outerFunc = module.exports = {
 				callback(recentData);
 			});
 		});
+
+		_logger.Info.Async('System reset');
 	},
 
 	CreateNewEmptyFile: function(filePath) {
