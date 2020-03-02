@@ -118,7 +118,7 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function MonitorWellPressureSwitch() {
-			_logger.Info.Async('Monitoring started', 'Well pressures switch');
+			_logger.Info.Async('Monitoring started', 'Well pressure switch');
 
 			_isWellCharged = (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
 			var wellRechargeTimer;
