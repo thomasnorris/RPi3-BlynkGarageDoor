@@ -80,6 +80,7 @@ global.requireLocal = require('local-modules').GetModule;
 				if (_ecobeeCfhInput.readSync() === 1 && !_manualOverrideEnable) {
 					if (!countLogged) {
 						AddToDatabaseAndDisplay(_ecobeeCfhCounterDisplay, ++_data[_mapping.CFH_COUNTER]);
+						_logger.Info.Async('Call for heat');
 						countLogged = true;
 					}
 
@@ -135,6 +136,7 @@ global.requireLocal = require('local-modules').GetModule;
 							_isWellCharged = true;
 							StopTimer(wellRechargeTimer);
 							AddToDatabaseAndDisplay(_wellRechargeCounterDisplay, ++_data[_mapping.WELL_RECHARGE_COUNTER]);
+							_logger.Info.Async('Well charged');
 						}
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
@@ -195,6 +197,8 @@ global.requireLocal = require('local-modules').GetModule;
 								else
 									StartColumbiaStopWell();
 							}, 100);
+
+							_logger.Info.Async('Call for gas');
 						}
 						else if (_boilerCfgInput.readSync() === 0) {
 							timerRunning = false;
