@@ -69,8 +69,6 @@ global.requireLocal = require('local-modules').GetModule;
 		// --End main function
 
 		function MonitorEcobeeCallForHeat() {
-			_logger.Info.Async('Monitoring started', 'Call for heat');
-
 			var countLogged = false;
 			var cfhTimerRunning = false;
 			var cfhTimer;
@@ -118,8 +116,6 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function MonitorWellPressureSwitch() {
-			_logger.Info.Async('Monitoring started', 'Well pressure switch');
-
 			_isWellCharged = (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES);
 			var wellRechargeTimer;
 			var wellRechargeTimerRunning = false;
@@ -152,8 +148,6 @@ global.requireLocal = require('local-modules').GetModule;
 		}
 
 		function MonitorValvesAndCallForGas() {
-			_logger.Info.Async('Monitoring started', 'Valves and call for gas');
-
 			var boilerTimer;
 			var wellTimer;
 			var wellTimerRunning = false;
@@ -302,8 +296,6 @@ global.requireLocal = require('local-modules').GetModule;
 			CreateFileSafeSchedule(CRON_ARCHIVE_SCHEDULE, _dbo.CreateArchives, () => {}); // --Empty callback is necessary
 			CreateFileSafeSchedule(CRON_DB_REFRESH_SCHEDULE, _dbo.RefreshDatabase);
 
-			_logger.Info.Async('Schedules created');
-
 			function CreateFileSafeSchedule(originalSchedule, functionToStart, functionCallback) {
 				var newSchedule = originalSchedule;
 				var job = nodeSchedule.scheduleJob(originalSchedule, () => {
@@ -359,7 +351,6 @@ global.requireLocal = require('local-modules').GetModule;
 			}, ALL_TIMERS_INTERVAL_MILLI);
 
 			_boilerOfftimeTimerDisplay.write(PrettyPrint(0));
-			_logger.Info.Async('Values initialized');
 		}
 
 		function ResetSystemToZero() {
