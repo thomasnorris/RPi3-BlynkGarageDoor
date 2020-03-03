@@ -2,7 +2,6 @@
 // Global logger setup
 var _path = require('path');
 global._logger = require(_path.resolve(__dirname, '../', 'Node-Logger', 'app.js'));
-_logger.Init();
 
 // --Set this so requireLocal can be used in all files without importing
 global.requireLocal = require('local-modules').GetModule;
@@ -10,7 +9,7 @@ global.requireLocal = require('local-modules').GetModule;
 (function() {
 	// --Setup Blynk in another file and pass it in to start the rest of the program
 	requireLocal('blynk-setup').Setup((_blynk) => {
-		_logger.Info.Async('Blynk configured and connected');
+		_logger.Init.Async('Blynk configured and connected');
 		var _gpio = require('onoff').Gpio;
 		var _dbo = requireLocal('database-operations');
 		var _guo = requireLocal('gas-use-operations');
@@ -56,7 +55,7 @@ global.requireLocal = require('local-modules').GetModule;
 
 		// --Start main function
 		_dbo.LoadDatabase((data) => {
-			_logger.Info.Async('Database loaded');
+			_logger.Init.Async('Database loaded');
 			_data = data;
 
 			// --All functions split up for readability

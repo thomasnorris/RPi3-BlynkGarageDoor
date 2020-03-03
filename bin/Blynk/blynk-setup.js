@@ -12,7 +12,7 @@ var _outerFunc = module.exports = {
 		// --Blynk will only connect once the server is up and running
 		tcpPortUsed.check(blynkServerPort, blynkServerIp).then((inUse) => {
 			if (inUse) {
-				_logger.Info.Async('Blynk server running', blynkServerIp + ':' + blynkServerPort);
+				_logger.Init.Async('Blynk server running', blynkServerIp + ':' + blynkServerPort);
 				blynk = new blynkLibrary.Blynk(blynkAuth, options = {
 					connector: new blynkLibrary.TcpClient(
 						options = { addr: blynkServerIp, port: blynkServerPort })});
