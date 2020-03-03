@@ -136,8 +136,10 @@ global.requireLocal = require('local-modules').GetModule;
 					}, ALL_TIMERS_INTERVAL_MILLI);
 				}
 				else if (_wellPressureSwitchInput.readSync() === 0) {
-					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES)
+					if (_data[_mapping.WELL_RECHARGE_TIMER] === RECHARGE_TIME_MINUTES) {
+						_logger.Info.Async('Well depleted');
 						_data[_mapping.WELL_RECHARGE_TIMER] = 0;
+					}
 
 					StopTimer(wellRechargeTimer);
 					wellRechargeTimerRunning = false;
