@@ -12,6 +12,7 @@
 - The Pi's timezone must be manually set for task scheduling to work as expected. Follow [these](https://victorhurdugaci.com/raspberry-pi-sync-date-and-time) instructions __up to step 6__ for getting it set up.
  	- Edit `/etc/rc.local` to include this to make sure that the time zone is applied on every startup (set for Eastern time)
 		- `cp /usr/share/zoneinfo/US/Eastern /etc/localtime && /etc/init.d/ntp restart`
+- Configure the `Node-Logger` submodule following the instructions [here](https://github.com/thomasnorris/Node-Logger#installation)
 - Clone this repo and change directory into the `bin` folder
 - Run this command
 	- `sudo chmod +x install.sh && ./install.sh`
